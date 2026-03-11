@@ -1,0 +1,76 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* KRDS Primary */
+    --krds-primary: #256EF4;
+    --krds-primary-dark: #0B50D0;
+    --krds-primary-light: #EBF1FE;
+
+    /* KRDS Gray scale */
+    --krds-gray-90: #1A1A1A;
+    --krds-gray-70: #474747;
+    --krds-gray-50: #767676;
+    --krds-gray-30: #B0B0B0;
+    --krds-gray-10: #F2F2F2;
+    --krds-gray-05: #F8F8F8;
+
+    /* KRDS Semantic */
+    --krds-bg-default: #FFFFFF;
+    --krds-bg-subtle: #F8F8F8;
+    --krds-border: #E0E0E0;
+    --krds-border-focus: #256EF4;
+
+    /* KRDS Status */
+    --krds-success: #0B7B3E;
+    --krds-warning: #FFCD29;
+    --krds-danger: #D32F2F;
+
+    /* Shadcn compatibility */
+    --background: 0 0% 97.3%;
+    --foreground: 0 0% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+    --primary: 217 90% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 94.9%;
+    --secondary-foreground: 0 0% 10%;
+    --muted: 0 0% 94.9%;
+    --muted-foreground: 0 0% 46.3%;
+    --accent: 217 90% 95%;
+    --accent-foreground: 217 90% 45%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 87.8%;
+    --input: 0 0% 87.8%;
+    --ring: 217 90% 55%;
+    --radius: 0.5rem;
+    --chart-1: 217 90% 55%;
+    --chart-2: 152 60% 30%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    @apply bg-krds-bg-subtle text-krds-gray-90;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
