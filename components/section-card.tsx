@@ -95,7 +95,7 @@ export default function SectionCard({
 
     try {
       const targetChars = Math.round((targetDuration / 60) * readingSpeed)
-      
+
       const response = await fetch("/api/generate-narration", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -129,7 +129,6 @@ export default function SectionCard({
       ? Math.round((duration / targetDuration) * 100)
       : 0
   const charCount = script.replace(/\s/g, "").length
-  // 낭독 속도에 따라 섹션별 목표 글자수 계산
   const targetChars = Math.round((targetDuration / 60) * readingSpeed)
 
   let statusColor = "text-krds-gray-30"
@@ -267,51 +266,96 @@ export default function SectionCard({
           <textarea
             value={script}
             onChange={(e) => onScriptChange(e.target.value)}
+            onBlur={(e) => {
+              // 포커스를 잃을 때 히스토리에 저장
+              const val = e.target.value
+              if (
+                val.trim() !== "" &&
+                (narrationHistory.length === 0 || narrationHistory[0] !== val)
+              ) {
+                addToHistory(val)
+              }
+            }}
             placeholder={`원고를 입력하세요 (목표: ${formatTime(targetDuration)}, 약 ${targetChars}자)`}
             className="min-h-36 w-full resize-y rounded-lg border-[1.5px] border-krds-border p-4 text-[15px] leading-relaxed outline-none transition-colors placeholder:text-krds-gray-30 focus:border-krds-primary"
           />
+
+          {/* 하단: 글자수 + 히스토리 */}
           <div className="mt-2 flex items-center justify-between text-[13px]">
-            <span className="text-krds-gray-50">{charCount}자</span>
+            <span className="text-krds-gray-50">
+              {charCount}자
+              <span className="ml-1 text-krds-gray-30">/ 목표 {targetChars}자</span>
+              {charCount > 0 && charCount < targetChars * 0.85 && (
+                <span className="ml-2 text-amber-500">글자수 부족</span>
+              )}
+              {charCount >= targetChars * 0.95 && charCount <= targetChars * 1.1 && (
+                <span className="ml-2 text-krds-success">✓ 적정</span>
+              )}
+            </span>
+
             <div className="flex items-center gap-3">
               {statusText && <span className={statusColor}>{statusText}</span>}
+
+              {/* 히스토리 버튼 */}
               {narrationHistory.length > 0 && (
                 <div className="relative">
                   <button
                     type="button"
                     onClick={() => setShowHistory(!showHistory)}
-                    className="flex items-center gap-1 text-krds-gray-50 transition-colors hover:text-krds-primary"
+                    className="flex items-center gap-1 rounded border border-[#E0E0E0] px-2.5 py-1 text-[12px] text-krds-gray-50 transition-colors hover:border-krds-primary hover:text-krds-primary"
                   >
                     <History className="h-3.5 w-3.5" />
-                    <span>이전 버전 ({narrationHistory.length})</span>
+                    <span>이전 버전 ({narrationHistory.length}개)</span>
                   </button>
+
+                  {/* 히스토리 드롭다운 */}
                   {showHistory && (
-                    <div className="absolute right-0 bottom-full z-10 mb-2 w-80 rounded-lg border border-krds-border bg-white p-3 shadow-lg">
-                      <div className="mb-2 text-[13px] font-medium text-krds-gray-70">이전 버전</div>
-                      <div className="max-h-60 space-y-2 overflow-y-auto">
-                        {narrationHistory.map((content, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-start justify-between gap-2 rounded-lg border border-krds-border bg-krds-gray-05 p-2"
-                          >
-                            <span className="line-clamp-2 flex-1 text-[12px] text-krds-gray-70">
-                              {content.slice(0, 50)}...
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => restoreFromHistory(content)}
-                              className="shrink-0 rounded bg-krds-primary px-2 py-1 text-[11px] font-medium text-white transition-colors hover:bg-krds-primary-dark"
+                    <>
+                      {/* 바깥 클릭 감지용 오버레이 */}
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setShowHistory(false)}
+                      />
+                      <div className="absolute right-0 bottom-full z-50 mb-2 w-80 rounded-xl border border-[#E0E0E0] bg-white p-3 shadow-lg">
+                        <div className="mb-2 text-[13px] font-semibold text-krds-gray-70">
+                          이전 버전 ({narrationHistory.length}/5)
+                        </div>
+                        <div className="space-y-2 max-h-64 overflow-y-auto">
+                          {narrationHistory.map((content, idx) => (
+                            <div
+                              key={idx}
+                              className="flex items-start justify-between gap-2 rounded-lg border border-[#E0E0E0] bg-[#F8F8F8] p-2.5"
                             >
-                              복원
-                            </button>
-                          </div>
-                        ))}
+                              <div className="flex-1 min-w-0">
+                                <div className="text-[11px] text-krds-gray-30 mb-1">
+                                  버전 {narrationHistory.length - idx}
+                                  <span className="ml-1">
+                                    ({content.replace(/\s/g, "").length}자)
+                                  </span>
+                                </div>
+                                <p className="text-[12px] text-krds-gray-70 line-clamp-2 leading-relaxed">
+                                  {content.slice(0, 50)}
+                                  {content.length > 50 ? "..." : ""}
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => restoreFromHistory(content)}
+                                className="shrink-0 rounded-md bg-krds-primary px-2.5 py-1 text-[11px] font-medium text-white transition-colors hover:bg-krds-primary-dark"
+                              >
+                                복원
+                              </button>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    </>
                   )}
                 </div>
               )}
             </div>
           </div>
+
           {error && (
             <div className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-[13px] text-krds-danger">
               {error}
