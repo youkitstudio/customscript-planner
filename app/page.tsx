@@ -68,6 +68,89 @@ function createSections(count: number, totalSeconds: number): SectionData[] {
 }
 
 export default function ContentPlanner() {
+ // ── 비밀번호 잠금 ──────────────────────
+  const SITE_PASSWORD = "youkit2026" // ← 원하는 비밀번호로 변경
+  const [unlocked, setUnlocked] = useState(false)
+  const [pwInput, setPwInput] = useState("")
+  const [pwError, setPwError] = useState(false)
+
+  const handlePasswordSubmit = () => {
+    if (pwInput === SITE_PASSWORD) {
+      setUnlocked(true)
+      setPwError(false)
+    } else {
+      setPwError(true)
+      setPwInput("")
+    }
+  }
+
+  if (!unlocked) {
+    return (
+      <div style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "#F8F8F8",
+        fontFamily: "Pretendard, Apple SD Gothic Neo, sans-serif"
+      }}>
+        <div style={{
+          background: "#fff",
+          border: "1px solid #E0E0E0",
+          borderRadius: 16,
+          padding: "40px 36px",
+          width: 360,
+          boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+          textAlign: "center"
+        }}>
+          <div style={{ fontSize: 32, marginBottom: 8 }}>🔒</div>
+          <h2 style={{
+            fontSize: 18, fontWeight: 700,
+            color: "#1A1A1A", marginBottom: 8
+          }}>
+            콘텐츠 원고 작성 도구
+          </h2>
+          <p style={{ fontSize: 14, color: "#767676", marginBottom: 24 }}>
+            접근하려면 비밀번호를 입력하세요
+          </p>
+          <input
+            type="password"
+            value={pwInput}
+            onChange={(e) => { setPwInput(e.target.value); setPwError(false) }}
+            onKeyDown={(e) => e.key === "Enter" && handlePasswordSubmit()}
+            placeholder="비밀번호 입력"
+            autoFocus
+            style={{
+              width: "100%", padding: "12px 16px",
+              border: pwError ? "1.5px solid #D32F2F" : "1.5px solid #E0E0E0",
+              borderRadius: 8, fontSize: 15, outline: "none",
+              marginBottom: 8, boxSizing: "border-box", color: "#1A1A1A"
+            }}
+          />
+          {pwError && (
+            <p style={{ fontSize: 13, color: "#D32F2F", marginBottom: 8 }}>
+              비밀번호가 올바르지 않습니다
+            </p>
+          )}
+          <button
+            onClick={handlePasswordSubmit}
+            style={{
+              width: "100%", padding: "12px",
+              background: "#256EF4", color: "#fff",
+              border: "none", borderRadius: 8,
+              fontSize: 15, fontWeight: 600, cursor: "pointer", marginTop: 4
+            }}
+          >
+            입장하기
+          </button>
+          <p style={{ fontSize: 12, color: "#B0B0B0", marginTop: 16 }}>
+            © 2026 YouKit. All Rights Reserved.
+          </p>
+        </div>
+      </div>
+    )
+  }
+  // ── 비밀번호 잠금 끝 ────────────────────
   const [projectName, setProjectName] = useState("")
   const [author, setAuthor] = useState("")
   const [contentType, setContentType] = useState("강의 영상 스크립트")
