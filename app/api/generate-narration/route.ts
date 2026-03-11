@@ -8,6 +8,7 @@ export async function POST(req: NextRequest) {
     const minutes = Math.floor(duration / 60)
     const seconds = duration % 60
     const timeStr = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+    const minChars = Math.round(targetChars * 0.95)
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 1024,
+        max_tokens: 2048,
         messages: [
           {
             role: "user",
@@ -26,16 +27,19 @@ export async function POST(req: NextRequest) {
 
 콘텐츠 유형: ${contentType}
 섹션 주제: ${topic}
-목표 글자수: ${targetChars}자 (공백 제외, 이 글자수를 반드시 채울 것)
 말투: ${toneStyle}
-목표 시간: ${timeStr}
+목표 시간: ${timeStr} (${duration}초)
 
-[필수 규칙]
-- 공백 제외 정확히 ${targetChars}자 ±5% 범위로 작성
-- 최소 ${Math.round(targetChars * 0.95)}자 이상 반드시 작성
+[글자수 필수 규칙 - 가장 중요]
+- 공백 제외 글자수를 반드시 ${targetChars}자 ±5% 범위로 작성
+- 최소 ${minChars}자 이상 반드시 작성할 것
 - 글자수가 부족하면 내용을 더 구체적이고 풍부하게 풀어서 작성
+- 예시, 비유, 부연 설명을 추가해서라도 글자수를 채울 것
+
+[작성 규칙]
 - 문단 구분 없이 자연스럽게 이어지는 하나의 나레이션
-- 나레이션 텍스트만 출력, 글자수 표기나 설명 없이`,
+- 나레이션 텍스트만 출력
+- 글자수 표기나 부가 설명 없이 나레이션만 작성`,
           },
         ],
       }),
