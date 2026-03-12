@@ -6,52 +6,63 @@
 
 @layer base {
   :root {
-    /* KRDS Primary */
-    --krds-primary: #256EF4;
-    --krds-primary-dark: #0B50D0;
-    --krds-primary-light: #EBF1FE;
+    /* ── StoryKit 실제 색상 팔레트 (oklch → hex 변환) ── */
 
-    /* KRDS Gray scale */
-    --krds-gray-90: #1A1A1A;
-    --krds-gray-70: #474747;
-    --krds-gray-50: #767676;
-    --krds-gray-30: #B0B0B0;
-    --krds-gray-10: #F2F2F2;
-    --krds-gray-05: #F8F8F8;
-
-    /* KRDS Semantic */
+    /* 배경: 순백 */
     --krds-bg-default: #FFFFFF;
-    --krds-bg-subtle: #F8F8F8;
-    --krds-border: #E0E0E0;
-    --krds-border-focus: #256EF4;
+    /* 서브 배경: 거의 흰색에 가까운 연회색 */
+    --krds-bg-subtle: #F7F7F8;
 
-    /* KRDS Status */
-    --krds-success: #0B7B3E;
-    --krds-warning: #FFCD29;
-    --krds-danger: #D32F2F;
+    /* 텍스트 스케일: StoryKit은 거의 검정 기반 */
+    --krds-gray-90: #1C1C1E;
+    --krds-gray-70: #3A3A3C;
+    --krds-gray-50: #6B6B6E;
+    --krds-gray-30: #AEAEB2;
+    --krds-gray-10: #F5F5F5;
+    --krds-gray-05: #FAFAFA;
 
-    /* Shadcn compatibility */
-    --background: 0 0% 97.3%;
-    --foreground: 0 0% 10%;
+    /* 테두리: 연회색 */
+    --krds-border: #E5E5E5;
+    --krds-border-focus: #1C1C1E;
+
+    /* Primary: StoryKit 전역 primary는 검정 계열 */
+    --krds-primary: #1C1C1E;
+    --krds-primary-dark: #000000;
+    --krds-primary-light: #F5F5F5;
+
+    /* StoryKit 보라색 — accent용 (버튼, 뱃지, 포인트) */
+    --sk-violet: #5B5BD6;
+    --sk-violet-dark: #4747C3;
+    --sk-violet-light: #EFEFFD;
+    --sk-violet-muted: #8B8BDF;
+
+    /* Status */
+    --krds-success: #1A7F45;
+    --krds-warning: #D97706;
+    --krds-danger: #DC2626;
+
+    /* Shadcn 호환 (HSL) */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
+    --card-foreground: 0 0% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
-    --primary: 217 90% 55%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 94.9%;
-    --secondary-foreground: 0 0% 10%;
-    --muted: 0 0% 94.9%;
-    --muted-foreground: 0 0% 46.3%;
-    --accent: 217 90% 95%;
-    --accent-foreground: 217 90% 45%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 87.8%;
-    --input: 0 0% 87.8%;
-    --ring: 217 90% 55%;
-    --radius: 0.5rem;
-    --chart-1: 217 90% 55%;
+    --popover-foreground: 0 0% 11%;
+    --primary: 0 0% 13%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 13%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 13%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 44%;
+    --radius: 0.625rem;
+    --chart-1: 240 60% 58%;
     --chart-2: 152 60% 30%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
@@ -65,7 +76,16 @@
   }
   body {
     font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
-    @apply bg-krds-bg-subtle text-krds-gray-90;
+    background-color: var(--krds-bg-subtle);
+    color: var(--krds-gray-90);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.01em;
+  }
+  h1, h2, h3 {
+    letter-spacing: -0.03em;
+    font-weight: 700;
+    color: var(--krds-gray-90);
   }
 }
 
