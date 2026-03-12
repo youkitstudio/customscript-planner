@@ -62,14 +62,12 @@ export default function SectionCard({
   const [showHistory, setShowHistory] = useState(false)
   const topicInputRef = useRef<HTMLInputElement>(null)
 
-  // 히스토리에 추가하는 함수
   const addToHistory = (content: string) => {
     if (!content || content.trim() === "" || !onHistoryChange) return
     const newHistory = [content, ...narrationHistory].slice(0, 5)
     onHistoryChange(newHistory)
   }
 
-  // 히스토리에서 복원하는 함수
   const restoreFromHistory = (content: string) => {
     if (script && script.trim() !== "") {
       addToHistory(script)
@@ -85,7 +83,6 @@ export default function SectionCard({
       return
     }
 
-    // 기존 원고가 있으면 히스토리에 저장
     if (script && script.trim() !== "") {
       addToHistory(script)
     }
@@ -153,12 +150,12 @@ export default function SectionCard({
 
   return (
     <div className="overflow-hidden rounded-xl border border-[#E0E0E0] bg-white">
-      {/* 헤더 */}
+      {/* ─── 헤더: AI 나레이션 생성 버튼 제거 ─── */}
       <div
         className="flex w-full items-center justify-between gap-4 border-b border-[#E0E0E0] bg-[#F8F8F8] px-5 py-3.5"
         style={{ borderLeft: `4px solid ${color}` }}
       >
-        {/* 좌측: 번호 + 이름 */}
+        {/* 좌측: 번호 + 섹션명 */}
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <span
             className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs font-bold text-white"
@@ -173,27 +170,9 @@ export default function SectionCard({
             placeholder="섹션명을 입력하세요"
             className="min-w-0 flex-1 border-none bg-transparent text-[15px] font-semibold text-krds-gray-90 outline-none placeholder:text-krds-gray-40 placeholder:font-normal placeholder:italic"
           />
-          <button
-            type="button"
-            onClick={handleGenerateNarration}
-            disabled={isGenerating}
-            className="ml-2 flex shrink-0 items-center gap-1.5 rounded-lg bg-krds-primary px-3 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-krds-primary-dark focus:outline-2 focus:outline-offset-2 focus:outline-krds-primary disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                <span>생성 중...</span>
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-3.5 w-3.5" />
-                <span>AI 나레이션 생성</span>
-              </>
-            )}
-          </button>
         </div>
 
-        {/* 우측: 작성완료 체크 + 되돌리기 + 시간 + 접기 버튼 */}
+        {/* 우측: 작성완료 + 되돌리기 + 시간 + 접기 */}
         <div className="flex shrink-0 items-center gap-3">
           <label className="hidden cursor-pointer items-center gap-1.5 text-[13px] select-none sm:flex">
             <input
@@ -248,26 +227,45 @@ export default function SectionCard({
       {/* 본문 */}
       {!collapsed && (
         <div className="p-5">
-          {/* 나레이션 주제 입력 필드 */}
+          {/* ─── 나레이션 주제 + AI 버튼 가로 배치 ─── */}
           <div className="mb-3">
             <label className="mb-2 block text-[13px] font-medium text-krds-gray-70">
               나레이션 주제 / 키워드
             </label>
-            <input
-              ref={topicInputRef}
-              type="text"
-              value={topic}
-              onChange={(e) => onTopicChange?.(e.target.value)}
-              placeholder="예) 포토샵 레이어 기초 개념과 활용법"
-              className="w-full rounded-lg border-[1.5px] border-krds-border px-4 py-2.5 text-[15px] outline-none transition-colors placeholder:text-krds-gray-30 focus:border-krds-primary"
-            />
+            <div className="flex items-center gap-2">
+              <input
+                ref={topicInputRef}
+                type="text"
+                value={topic}
+                onChange={(e) => onTopicChange?.(e.target.value)}
+                placeholder="예) 포토샵 레이어 기초 개념과 활용법"
+                className="flex-1 rounded-lg border-[1.5px] border-krds-border px-4 py-2.5 text-[15px] outline-none transition-colors placeholder:text-krds-gray-30 focus:border-krds-primary"
+              />
+              <button
+                type="button"
+                onClick={handleGenerateNarration}
+                disabled={isGenerating}
+                className="flex shrink-0 items-center gap-1.5 rounded-lg bg-krds-primary px-3 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-krds-primary-dark focus:outline-2 focus:outline-offset-2 focus:outline-krds-primary disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span>생성 중...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span>AI 나레이션 생성</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
           <textarea
             value={script}
             onChange={(e) => onScriptChange(e.target.value)}
             onBlur={(e) => {
-              // 포커스를 잃을 때 히스토리에 저장
               const val = e.target.value
               if (
                 val.trim() !== "" &&
@@ -296,7 +294,6 @@ export default function SectionCard({
             <div className="flex items-center gap-3">
               {statusText && <span className={statusColor}>{statusText}</span>}
 
-              {/* 히스토리 버튼 */}
               {narrationHistory.length > 0 && (
                 <div className="relative">
                   <button
@@ -308,10 +305,8 @@ export default function SectionCard({
                     <span>이전 버전 ({narrationHistory.length}개)</span>
                   </button>
 
-                  {/* 히스토리 드롭다운 */}
                   {showHistory && (
                     <>
-                      {/* 바깥 클릭 감지용 오버레이 */}
                       <div
                         className="fixed inset-0 z-40"
                         onClick={() => setShowHistory(false)}
