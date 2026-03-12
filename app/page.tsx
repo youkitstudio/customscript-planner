@@ -63,7 +63,7 @@ function createSections(count: number, totalSeconds: number): SectionData[] {
   }))
 }
 
-// ── 비밀번호 화면 (별도 컴포넌트) ─────────
+// ── 비밀번호 화면 ─────────────────────────
 function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
   const [pwInput, setPwInput] = useState("")
   const [pwError, setPwError] = useState(false)
@@ -79,22 +79,53 @@ function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
 
   return (
     <div style={{
-      minHeight: "100vh", display: "flex", alignItems: "center",
-      justifyContent: "center", background: "#F8F8F8",
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      background: "#F7F7F8",
       fontFamily: "Pretendard, Apple SD Gothic Neo, sans-serif",
     }}>
       <div style={{
-        background: "#fff", border: "1px solid #E0E0E0", borderRadius: 16,
-        padding: "40px 36px", width: 360,
-        boxShadow: "0 4px 20px rgba(0,0,0,0.08)", textAlign: "center",
+        background: "#fff",
+        border: "1px solid #E5E5E5",
+        borderRadius: 16,
+        padding: "48px 40px",
+        width: 380,
+        boxShadow: "0 1px 3px rgba(0,0,0,0.06), 0 4px 24px rgba(0,0,0,0.04)",
+        textAlign: "center",
       }}>
-        <div style={{ fontSize: 32, marginBottom: 8 }}>🔒</div>
-        <h2 style={{ fontSize: 18, fontWeight: 700, color: "#1A1A1A", marginBottom: 8 }}>
+        {/* 로고 영역 */}
+        <div style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 8,
+          marginBottom: 32,
+        }}>
+          <div style={{
+            width: 32,
+            height: 32,
+            borderRadius: 8,
+            background: "#5B5BD6",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 16,
+            color: "#fff",
+            fontWeight: 700,
+          }}>Y</div>
+          <span style={{ fontSize: 15, fontWeight: 700, color: "#1C1C1E", letterSpacing: "-0.02em" }}>
+            YouKit Studio
+          </span>
+        </div>
+
+        <h2 style={{ fontSize: 20, fontWeight: 700, color: "#1C1C1E", marginBottom: 6, letterSpacing: "-0.03em" }}>
           콘텐츠 원고 작성 도구
         </h2>
-        <p style={{ fontSize: 14, color: "#767676", marginBottom: 24 }}>
+        <p style={{ fontSize: 14, color: "#6B6B6E", marginBottom: 28, lineHeight: 1.6 }}>
           접근하려면 비밀번호를 입력하세요
         </p>
+
         <input
           type="password"
           value={pwInput}
@@ -103,28 +134,45 @@ function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
           placeholder="비밀번호 입력"
           autoFocus
           style={{
-            width: "100%", padding: "12px 16px",
-            border: pwError ? "1.5px solid #D32F2F" : "1.5px solid #E0E0E0",
-            borderRadius: 8, fontSize: 15, outline: "none",
-            marginBottom: 8, boxSizing: "border-box", color: "#1A1A1A",
+            width: "100%",
+            padding: "11px 14px",
+            border: pwError ? "1.5px solid #DC2626" : "1.5px solid #E5E5E5",
+            borderRadius: 10,
+            fontSize: 14,
+            outline: "none",
+            marginBottom: 8,
+            boxSizing: "border-box",
+            color: "#1C1C1E",
+            background: "#FAFAFA",
+            fontFamily: "inherit",
+            letterSpacing: "-0.01em",
           }}
         />
         {pwError && (
-          <p style={{ fontSize: 13, color: "#D32F2F", marginBottom: 8 }}>
+          <p style={{ fontSize: 13, color: "#DC2626", marginBottom: 8 }}>
             비밀번호가 올바르지 않습니다
           </p>
         )}
         <button
           onClick={handleSubmit}
           style={{
-            width: "100%", padding: "12px", background: "#256EF4",
-            color: "#fff", border: "none", borderRadius: 8,
-            fontSize: 15, fontWeight: 600, cursor: "pointer", marginTop: 4,
+            width: "100%",
+            padding: "11px",
+            background: "#5B5BD6",
+            color: "#fff",
+            border: "none",
+            borderRadius: 10,
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: "pointer",
+            marginTop: 4,
+            fontFamily: "inherit",
+            letterSpacing: "-0.01em",
           }}
         >
           입장하기
         </button>
-        <p style={{ fontSize: 12, color: "#B0B0B0", marginTop: 16 }}>
+        <p style={{ fontSize: 12, color: "#AEAEB2", marginTop: 20 }}>
           © 2026 YouKit. All Rights Reserved.
         </p>
       </div>
@@ -254,37 +302,7 @@ function ContentPlannerMain() {
   const totalPercent = totalSeconds > 0 ? Math.round((totalActual / totalSeconds) * 100) : 0
 
   const exportToMd = useCallback(() => {
-    const markdown = `---
-title: ${projectName || "제목없음"}
-author: ${author || ""}
-contentType: ${contentType}
-runtime: ${totalMinutes}
-sections: ${sections.length}
-created: ${new Date().toISOString()}
----
-
-# ${projectName || "제목없음"}
-
-**작성자:** ${author || "-"}  
-**콘텐츠 유형:** ${contentType}  
-**전체 러닝타임:** ${totalMinutes}분  
-**섹션 수:** ${sections.length}
-
----
-
-${sections.map((section, idx) => `
-## #${idx + 1} ${section.name}
-
-**목표 시간:** ${formatTime(section.targetDuration)}  
-**작성 시간:** ${formatTime(calculateDuration(section.script))}  
-**작성완료:** ${section.isCompleted ? "예" : "아니오"}
-
-### 원고
-
-${section.script || "(작성된 내용 없음)"}
-
----
-`).join("\n")}`
+    const markdown = `---\ntitle: ${projectName || "제목없음"}\nauthor: ${author || ""}\ncontentType: ${contentType}\nruntime: ${totalMinutes}\nsections: ${sections.length}\ncreated: ${new Date().toISOString()}\n---\n\n# ${projectName || "제목없음"}\n\n**작성자:** ${author || "-"}  \n**콘텐츠 유형:** ${contentType}  \n**전체 러닝타임:** ${totalMinutes}분  \n**섹션 수:** ${sections.length}\n\n---\n\n${sections.map((section, idx) => `\n## #${idx + 1} ${section.name}\n\n**목표 시간:** ${formatTime(section.targetDuration)}  \n**작성 시간:** ${formatTime(calculateDuration(section.script))}  \n**작성완료:** ${section.isCompleted ? "예" : "아니오"}\n\n### 원고\n\n${section.script || "(작성된 내용 없음)"}\n\n---\n`).join("\n")}`
     const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
@@ -392,223 +410,387 @@ ${section.script || "(작성된 내용 없음)"}
     a.href = url; a.download = `${projectName || "원고"}_${Date.now()}.txt`; a.click(); URL.revokeObjectURL(url)
   }, [projectName, author, contentType, totalMinutes, sections, toneStyle, readingSpeed, totalTargetChars])
 
+  /* ── 스타일 상수 (StoryKit 감성) ── */
+  const card: React.CSSProperties = {
+    background: "#fff",
+    border: "1px solid #E5E5E5",
+    borderRadius: 12,
+    boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
+  }
+  const inputBase: React.CSSProperties = {
+    borderRadius: 8,
+    border: "1px solid #E5E5E5",
+    background: "#FAFAFA",
+    padding: "10px 13px",
+    fontSize: 14,
+    outline: "none",
+    color: "#1C1C1E",
+    fontFamily: "inherit",
+    letterSpacing: "-0.01em",
+    width: "100%",
+    boxSizing: "border-box" as const,
+    transition: "border-color 0.15s",
+  }
+  const labelBase: React.CSSProperties = {
+    display: "block",
+    fontSize: 12,
+    fontWeight: 600,
+    color: "#6B6B6E",
+    marginBottom: 7,
+    letterSpacing: "-0.01em",
+  }
+
   return (
-    <div className="min-h-screen bg-white">
-      <header className="border-b border-[#E0E0E0] bg-white">
-        <div className="mx-auto max-w-[1100px] px-6 py-6">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold tracking-tight text-krds-gray-90">콘텐츠 원고 작성 도구</h1>
-            <a href="/guide" target="_blank" rel="noopener noreferrer"
-              className="rounded-lg bg-krds-primary px-5 py-2.5 text-[15px] font-semibold text-white transition-colors hover:bg-krds-primary-dark">
-              작성가이드
-            </a>
+    <div style={{ minHeight: "100vh", background: "#F7F7F8", fontFamily: "Pretendard, Apple SD Gothic Neo, sans-serif" }}>
+
+      {/* ── Header ── */}
+      <header style={{ background: "#fff", borderBottom: "1px solid #E5E5E5", position: "sticky", top: 0, zIndex: 50 }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          {/* 로고 */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{
+              width: 28, height: 28, borderRadius: 7, background: "#5B5BD6",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 13, color: "#fff", fontWeight: 700,
+            }}>Y</div>
+            <span style={{ fontSize: 15, fontWeight: 700, color: "#1C1C1E", letterSpacing: "-0.03em" }}>
+              콘텐츠 원고 작성 도구
+            </span>
           </div>
+          {/* 작성가이드 버튼 */}
+          <a href="/guide" target="_blank" rel="noopener noreferrer"
+            style={{
+              background: "#5B5BD6",
+              color: "#fff",
+              borderRadius: 8,
+              padding: "7px 16px",
+              fontSize: 13,
+              fontWeight: 600,
+              textDecoration: "none",
+              letterSpacing: "-0.01em",
+            }}>
+            작성가이드
+          </a>
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1100px] px-6 py-8">
-        <div className="mb-6 space-y-4">
-          <div className="flex gap-3">
-            <input type="text" value={projectName} onChange={(e) => setProjectName(e.target.value)}
-              placeholder="프로젝트 명 (예: 재난영화 홍보영상)"
-              className="flex-[3] rounded-xl border border-[#E0E0E0] bg-white px-4 py-3 text-[15px] outline-none transition-colors placeholder:text-krds-gray-30 focus:border-krds-primary" />
-            <input type="text" value={author} onChange={(e) => setAuthor(e.target.value)}
-              placeholder="작성자"
-              className="flex-[2] rounded-xl border border-[#E0E0E0] bg-white px-4 py-3 text-[15px] outline-none transition-colors placeholder:text-krds-gray-30 focus:border-krds-primary" />
+      <main style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 24px" }}>
+
+        {/* ── 프로젝트 정보 입력 ── */}
+        <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
+          <input
+            type="text" value={projectName}
+            onChange={(e) => setProjectName(e.target.value)}
+            placeholder="프로젝트 명 (예: 재난영화 홍보영상)"
+            style={{ ...inputBase, flex: 3 }}
+            onFocus={e => (e.target.style.borderColor = "#5B5BD6")}
+            onBlur={e => (e.target.style.borderColor = "#E5E5E5")}
+          />
+          <input
+            type="text" value={author}
+            onChange={(e) => setAuthor(e.target.value)}
+            placeholder="작성자"
+            style={{ ...inputBase, flex: 2 }}
+            onFocus={e => (e.target.style.borderColor = "#5B5BD6")}
+            onBlur={e => (e.target.style.borderColor = "#E5E5E5")}
+          />
+        </div>
+
+        {/* ── 설정 카드 ── */}
+        <div style={{ ...card, padding: "24px", marginBottom: 16 }}>
+
+          {/* 상단 3열: 콘텐츠 유형 / 러닝타임 / 섹션 수 */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 20 }}>
+            <div>
+              <label style={labelBase}>콘텐츠 유형</label>
+              <select value={contentType} onChange={(e) => setContentType(e.target.value)} style={inputBase}
+                onFocus={e => (e.target.style.borderColor = "#5B5BD6")}
+                onBlur={e => (e.target.style.borderColor = "#E5E5E5")}>
+                {CONTENT_TYPES.map((ct) => <option key={ct} value={ct}>{ct}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={labelBase}>러닝타임</label>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <select
+                  value={isCustomRuntime ? "custom" : totalMinutes}
+                  onChange={(e) => {
+                    if (e.target.value === "custom") {
+                      setIsCustomRuntime(true); setCustomMinutes(Math.floor(totalMinutes)); setCustomSeconds(Math.round((totalMinutes % 1) * 60))
+                    } else {
+                      setIsCustomRuntime(false); setCustomMinutes(0); setCustomSeconds(0); handleRuntimeChange(parseInt(e.target.value))
+                    }
+                  }}
+                  style={{ ...inputBase, width: isCustomRuntime ? "auto" : "100%", flex: isCustomRuntime ? "none" : 1 }}
+                  onFocus={e => (e.target.style.borderColor = "#5B5BD6")}
+                  onBlur={e => (e.target.style.borderColor = "#E5E5E5")}>
+                  {RUNTIME_OPTIONS.map((m) => <option key={m} value={m}>{m}분</option>)}
+                  <option value="custom">직접 입력</option>
+                </select>
+                {isCustomRuntime && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <input type="number" min={0} max={300} value={customMinutes} placeholder="0"
+                        onChange={(e) => { const mins = Math.max(0, Math.min(300, parseInt(e.target.value) || 0)); setCustomMinutes(mins); const t = mins + customSeconds / 60; if (t > 0) handleRuntimeChange(t) }}
+                        style={{ ...inputBase, width: 52, textAlign: "center", padding: "10px 6px" }} />
+                      <span style={{ fontSize: 12, color: "#6B6B6E" }}>분</span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <input type="number" min={0} max={50} step={10} value={customSeconds} placeholder="0"
+                        onChange={(e) => { let secs = Math.round((parseInt(e.target.value) || 0) / 10) * 10; if (secs < 0) secs = 0; if (secs >= 60) secs = 50; setCustomSeconds(secs); const t = customMinutes + secs / 60; if (t > 0) handleRuntimeChange(t) }}
+                        style={{ ...inputBase, width: 52, textAlign: "center", padding: "10px 6px" }} />
+                      <span style={{ fontSize: 12, color: "#6B6B6E" }}>초</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div>
+              <label style={labelBase}>섹션 수</label>
+              <select value={sectionCount} onChange={(e) => handleSectionCountChange(parseInt(e.target.value))} style={inputBase}
+                onFocus={e => (e.target.style.borderColor = "#5B5BD6")}
+                onBlur={e => (e.target.style.borderColor = "#E5E5E5")}>
+                {[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].map((n) => <option key={n} value={n}>{n}개</option>)}
+              </select>
+            </div>
           </div>
 
-          <div className="rounded-xl border border-[#E0E0E0] bg-white p-6 shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <div>
-                <label className="mb-2 block text-[13px] font-semibold text-[#474747]">콘텐츠 유형</label>
-                <select value={contentType} onChange={(e) => setContentType(e.target.value)}
-                  className="w-full rounded-lg border-[1.5px] border-[#E0E0E0] bg-white px-4 py-3 text-[15px] outline-none transition-colors focus:border-krds-primary">
-                  {CONTENT_TYPES.map((ct) => <option key={ct} value={ct}>{ct}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="mb-2 block text-[13px] font-semibold text-[#474747]">러닝타임</label>
-                <div className="flex items-center gap-2">
-                  <select
-                    value={isCustomRuntime ? "custom" : totalMinutes}
-                    onChange={(e) => {
-                      if (e.target.value === "custom") {
-                        setIsCustomRuntime(true); setCustomMinutes(Math.floor(totalMinutes)); setCustomSeconds(Math.round((totalMinutes % 1) * 60))
-                      } else {
-                        setIsCustomRuntime(false); setCustomMinutes(0); setCustomSeconds(0); handleRuntimeChange(parseInt(e.target.value))
-                      }
-                    }}
-                    className={`rounded-lg border-[1.5px] border-[#E0E0E0] bg-white px-4 py-3 text-[15px] outline-none transition-colors focus:border-krds-primary ${isCustomRuntime ? "w-auto" : "w-full"}`}>
-                    {RUNTIME_OPTIONS.map((m) => <option key={m} value={m}>{m}분</option>)}
-                    <option value="custom">직접 입력</option>
-                  </select>
-                  {isCustomRuntime && (
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1">
-                        <input type="number" min={0} max={300} value={customMinutes} placeholder="0"
-                          onChange={(e) => { const mins = Math.max(0, Math.min(300, parseInt(e.target.value) || 0)); setCustomMinutes(mins); const t = mins + customSeconds / 60; if (t > 0) handleRuntimeChange(t) }}
-                          className="w-16 rounded-lg border-[1.5px] border-[#E0E0E0] bg-white px-2 py-3 text-center text-[15px] outline-none focus:border-krds-primary" />
-                        <span className="text-[13px] text-krds-gray-50">분</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <input type="number" min={0} max={50} step={10} value={customSeconds} placeholder="0"
-                          onChange={(e) => { let secs = Math.round((parseInt(e.target.value) || 0) / 10) * 10; if (secs < 0) secs = 0; if (secs >= 60) secs = 50; setCustomSeconds(secs); const t = customMinutes + secs / 60; if (t > 0) handleRuntimeChange(t) }}
-                          className="w-16 rounded-lg border-[1.5px] border-[#E0E0E0] bg-white px-2 py-3 text-center text-[15px] outline-none focus:border-krds-primary" />
-                        <span className="text-[13px] text-krds-gray-50">초</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div>
-                <label className="mb-2 block text-[13px] font-semibold text-[#474747]">섹션 수</label>
-                <select value={sectionCount} onChange={(e) => handleSectionCountChange(parseInt(e.target.value))}
-                  className="w-full rounded-lg border-[1.5px] border-[#E0E0E0] bg-white px-4 py-3 text-[15px] outline-none transition-colors focus:border-krds-primary">
-                  {[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].map((n) => <option key={n} value={n}>{n}개</option>)}
-                </select>
+          {/* 구분선 */}
+          <div style={{ height: 1, background: "#F5F5F5", marginBottom: 20 }} />
+
+          {/* 하단 2열: 말투 스타일 / 낭독 속도 */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+            <div>
+              <label style={labelBase}>말투 스타일</label>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {TONE_STYLES.map((tone) => (
+                  <button key={tone.value} type="button" onClick={() => setToneStyle(tone.value)}
+                    style={{
+                      borderRadius: 7,
+                      border: toneStyle === tone.value ? "1.5px solid #5B5BD6" : "1px solid #E5E5E5",
+                      background: toneStyle === tone.value ? "#EFEFFD" : "#FAFAFA",
+                      color: toneStyle === tone.value ? "#5B5BD6" : "#3A3A3C",
+                      padding: "7px 13px",
+                      fontSize: 13,
+                      fontWeight: toneStyle === tone.value ? 600 : 400,
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      letterSpacing: "-0.01em",
+                      transition: "all 0.12s",
+                    }}>
+                    {tone.label}
+                  </button>
+                ))}
               </div>
             </div>
-
-            <div className="my-5 border-b border-[#F0F0F0]" />
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-2 block text-[13px] font-semibold text-[#474747]">말투 스타일</label>
-                <div className="flex flex-wrap gap-2">
-                  {TONE_STYLES.map((tone) => (
-                    <button key={tone.value} type="button" onClick={() => setToneStyle(tone.value)}
-                      className={`rounded-lg border-[1.5px] px-4 py-2 text-[14px] font-medium transition-colors ${toneStyle === tone.value ? "border-krds-primary bg-[#EBF1FE] font-semibold text-krds-primary" : "border-[#E0E0E0] bg-[#F8F8F8] text-[#474747] hover:border-krds-gray-30"}`}>
-                      {tone.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label className="mb-2 block text-[13px] font-semibold text-[#474747]">낭독 속도</label>
-                <div className="flex gap-2">
-                  {READING_SPEEDS.map((speed) => (
-                    <button key={speed.value} type="button" onClick={() => setReadingSpeed(speed.value)}
-                      className={`flex flex-1 flex-col items-center rounded-lg border-[1.5px] px-4 py-2 text-[14px] font-medium whitespace-nowrap transition-colors ${readingSpeed === speed.value ? "border-krds-primary bg-[#EBF1FE] font-semibold text-krds-primary" : "border-[#E0E0E0] bg-[#F8F8F8] text-[#474747] hover:border-krds-gray-30"}`}>
-                      <span>{speed.label}</span>
-                      <span className="mt-0.5 text-[11px] font-normal text-[#9CA3AF]">1분 = {speed.value}자</span>
-                    </button>
-                  ))}
-                </div>
+            <div>
+              <label style={labelBase}>낭독 속도</label>
+              <div style={{ display: "flex", gap: 6 }}>
+                {READING_SPEEDS.map((speed) => (
+                  <button key={speed.value} type="button" onClick={() => setReadingSpeed(speed.value)}
+                    style={{
+                      flex: 1,
+                      borderRadius: 7,
+                      border: readingSpeed === speed.value ? "1.5px solid #5B5BD6" : "1px solid #E5E5E5",
+                      background: readingSpeed === speed.value ? "#EFEFFD" : "#FAFAFA",
+                      color: readingSpeed === speed.value ? "#5B5BD6" : "#3A3A3C",
+                      padding: "8px 6px",
+                      fontSize: 12,
+                      fontWeight: readingSpeed === speed.value ? 600 : 400,
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                      transition: "all 0.12s",
+                    }}>
+                    <span style={{ fontSize: 12, whiteSpace: "nowrap" }}>{speed.label}</span>
+                    <span style={{ fontSize: 10, color: readingSpeed === speed.value ? "#8B8BDF" : "#AEAEB2" }}>1분 = {speed.value}자</span>
+                  </button>
+                ))}
               </div>
             </div>
+          </div>
 
-            <div className="mt-5 flex justify-end">
-              <span className="text-[15px] font-medium text-krds-primary">목표 글자수: {totalTargetChars.toLocaleString()}자</span>
-            </div>
+          {/* 목표 글자수 */}
+          <div style={{ marginTop: 16, display: "flex", justifyContent: "flex-end" }}>
+            <span style={{
+              fontSize: 13, fontWeight: 600, color: "#5B5BD6",
+              background: "#EFEFFD", borderRadius: 6,
+              padding: "4px 12px", letterSpacing: "-0.01em",
+            }}>
+              목표 글자수: {totalTargetChars.toLocaleString()}자
+            </span>
           </div>
         </div>
 
-        <div className="mb-6 rounded-xl border border-krds-border bg-krds-bg-default p-6 shadow-[0_1px_4px_rgba(0,0,0,0.08)]">
+        {/* ── 타임라인 ── */}
+        <div style={{ ...card, padding: "20px 24px", marginBottom: 16 }}>
           <Timeline
             sections={sections.map((s) => ({ id: s.id, name: s.name, targetDuration: s.targetDuration, color: s.color }))}
-            totalSeconds={totalSeconds} onDurationChange={handleDurationChange}
-            onDirectDurationEdit={handleDirectDurationEdit} onResetDistribution={handleResetDistribution} />
+            totalSeconds={totalSeconds}
+            onDurationChange={handleDurationChange}
+            onDirectDurationEdit={handleDirectDurationEdit}
+            onResetDistribution={handleResetDistribution}
+          />
         </div>
 
-        <div className="mb-6 flex items-center justify-center gap-3">
+        {/* ── 프로젝트 저장/불러오기 ── */}
+        <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 16 }}>
           <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isLoadingFile}
-            className="flex items-center gap-2 rounded-lg border-[1.5px] border-krds-primary bg-transparent px-5 py-2.5 text-[15px] font-semibold text-krds-primary transition-colors hover:bg-krds-primary-light disabled:opacity-50">
-            <Upload className="h-4 w-4" />{isLoadingFile ? "불러오는 중..." : "프로젝트 불러오기"}
+            style={{
+              display: "flex", alignItems: "center", gap: 6,
+              border: "1px solid #5B5BD6", background: "transparent",
+              color: "#5B5BD6", borderRadius: 8,
+              padding: "9px 18px", fontSize: 13, fontWeight: 600,
+              cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em",
+              opacity: isLoadingFile ? 0.5 : 1,
+            }}>
+            <Upload style={{ width: 14, height: 14 }} />
+            {isLoadingFile ? "불러오는 중..." : "프로젝트 불러오기"}
           </button>
-          <input ref={fileInputRef} type="file" accept=".md" className="hidden"
+          <input ref={fileInputRef} type="file" accept=".md" style={{ display: "none" }}
             onChange={(e) => { const file = e.target.files?.[0]; if (file) importFromMd(file); e.target.value = "" }} />
           <button type="button" onClick={exportToMd}
-            className="flex items-center gap-2 rounded-lg bg-krds-gray-10 px-5 py-2.5 text-[15px] font-semibold text-krds-gray-90 transition-colors hover:bg-krds-gray-30">
-            <Save className="h-4 w-4" />프로젝트 저장
+            style={{
+              display: "flex", alignItems: "center", gap: 6,
+              background: "#F5F5F5", color: "#3A3A3C",
+              border: "1px solid #E5E5E5", borderRadius: 8,
+              padding: "9px 18px", fontSize: 13, fontWeight: 600,
+              cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em",
+            }}>
+            <Save style={{ width: 14, height: 14 }} />프로젝트 저장
           </button>
         </div>
 
-        <div className="mb-8 rounded-xl border border-krds-border bg-krds-bg-default p-6 shadow-[0_1px_4px_rgba(0,0,0,0.08)]">
-          <div className="mb-4 flex items-end justify-between">
+        {/* ── 전체 진행률 ── */}
+        <div style={{ ...card, padding: "20px 24px", marginBottom: 24 }}>
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 12 }}>
             <div>
-              <p className="text-[13px] text-krds-gray-50">전체 러닝타임</p>
-              <p className="text-2xl font-bold text-krds-gray-90">{formatTime(totalActual)} <span className="text-krds-gray-30">/ {formatTime(totalSeconds)}</span></p>
+              <p style={{ fontSize: 12, color: "#6B6B6E", marginBottom: 4, letterSpacing: "-0.01em" }}>전체 러닝타임</p>
+              <p style={{ fontSize: 24, fontWeight: 700, color: "#1C1C1E", letterSpacing: "-0.04em", lineHeight: 1 }}>
+                {formatTime(totalActual)}
+                <span style={{ fontSize: 16, fontWeight: 400, color: "#AEAEB2", marginLeft: 6 }}>/ {formatTime(totalSeconds)}</span>
+              </p>
             </div>
-            <div className={`text-3xl font-bold ${totalPercent > 105 ? "text-krds-danger" : totalPercent >= 95 ? "text-krds-success" : "text-krds-gray-30"}`}>{totalPercent}%</div>
+            <p style={{
+              fontSize: 28, fontWeight: 700, letterSpacing: "-0.04em",
+              color: totalPercent > 105 ? "#DC2626" : totalPercent >= 95 ? "#1A7F45" : "#AEAEB2",
+            }}>{totalPercent}%</p>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-krds-gray-10">
-            <div className={`h-full transition-all duration-300 ${totalPercent > 105 ? "bg-krds-danger" : totalPercent >= 95 ? "bg-krds-success" : "bg-krds-primary"}`}
-              style={{ width: `${Math.min(totalPercent, 100)}%` }} />
+          <div style={{ height: 6, borderRadius: 99, background: "#F5F5F5", overflow: "hidden" }}>
+            <div style={{
+              height: "100%",
+              borderRadius: 99,
+              width: `${Math.min(totalPercent, 100)}%`,
+              background: totalPercent > 105 ? "#DC2626" : totalPercent >= 95 ? "#1A7F45" : "#5B5BD6",
+              transition: "width 0.3s ease",
+            }} />
           </div>
-          {totalPercent > 105 && <p className="mt-3 text-[15px] text-krds-danger">{formatTime(totalActual - totalSeconds)} 초과</p>}
+          {totalPercent > 105 && (
+            <p style={{ marginTop: 8, fontSize: 13, color: "#DC2626", fontWeight: 500 }}>
+              {formatTime(totalActual - totalSeconds)} 초과
+            </p>
+          )}
         </div>
 
-        <div className="space-y-4">
+        {/* ── 섹션 카드 목록 ── */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {sections.map((section, index) => (
-            <SectionCard key={section.id} index={index} name={section.name}
-              targetDuration={section.targetDuration} script={section.script}
-              color={section.color} isCompleted={section.isCompleted}
-              readingSpeed={readingSpeed} contentType={contentType} toneStyle={toneStyle}
-              topic={section.topic} narrationHistory={section.narrationHistory}
+            <SectionCard
+              key={section.id}
+              index={index}
+              name={section.name}
+              targetDuration={section.targetDuration}
+              script={section.script}
+              color={section.color}
+              isCompleted={section.isCompleted}
+              readingSpeed={readingSpeed}
+              contentType={contentType}
+              toneStyle={toneStyle}
+              topic={section.topic}
+              narrationHistory={section.narrationHistory}
               onNameChange={(name) => handleNameChange(index, name)}
               onScriptChange={(script) => handleScriptChange(index, script)}
               onCompletedChange={(completed) => handleCompletedChange(index, completed)}
               onReset={() => handleReset(index)}
               onTopicChange={(topic) => handleTopicChange(index, topic)}
-              onHistoryChange={(history) => handleHistoryChange(index, history)} />
+              onHistoryChange={(history) => handleHistoryChange(index, history)}
+            />
           ))}
         </div>
 
-        <div className="mt-10 flex flex-col items-center">
-          <div className="flex items-center gap-3">
+        {/* ── 다운로드 ── */}
+        <div style={{ marginTop: 40, display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+          <div style={{ display: "flex", gap: 10 }}>
             <button type="button" onClick={downloadText}
-              className="flex items-center gap-2 rounded-lg bg-krds-gray-10 px-6 py-3 text-[15px] font-semibold text-krds-gray-90 transition-colors hover:bg-krds-gray-30">
-              <FileText className="h-4 w-4" />텍스트 다운로드
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                background: "#F5F5F5", color: "#3A3A3C",
+                border: "1px solid #E5E5E5", borderRadius: 9,
+                padding: "11px 20px", fontSize: 14, fontWeight: 600,
+                cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em",
+              }}>
+              <FileText style={{ width: 15, height: 15 }} />텍스트 다운로드
             </button>
             <button type="button" onClick={downloadPDF}
-              className="flex items-center gap-2 rounded-lg bg-krds-primary px-8 py-3 text-[15px] font-semibold text-white transition-colors hover:bg-krds-primary-dark">
-              <Download className="h-4 w-4" />PDF 다운로드
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                background: "#5B5BD6", color: "#fff",
+                border: "none", borderRadius: 9,
+                padding: "11px 24px", fontSize: 14, fontWeight: 600,
+                cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em",
+              }}>
+              <Download style={{ width: 15, height: 15 }} />PDF 다운로드
             </button>
           </div>
-          <p className="mt-3 text-[13px] text-krds-gray-50">다운로드 버튼 클릭 후 약 3초 정도 후에 다운로드가 진행됩니다.</p>
+          <p style={{ fontSize: 12, color: "#AEAEB2", letterSpacing: "-0.01em" }}>
+            다운로드 버튼 클릭 후 약 3초 정도 후에 다운로드가 진행됩니다.
+          </p>
         </div>
       </main>
 
-      <footer className="mt-12 border-t border-krds-border bg-krds-bg-default">
-        <div className="mx-auto max-w-[1200px] px-6 py-8">
-          <div className="text-center text-[15px] leading-relaxed text-krds-gray-50">
-            <p>본 사이트에 포함된 모든 콘텐츠의 저작권은 유킷(youkit)에 있으며,</p>
-            <p>본 콘텐츠는 대덕대학교 RISE 사업 관련 원고 작성 및 학습 콘텐츠 개발을 위한 목적에 한하여 활용됩니다.</p>
-            <p className="mt-4">문의: youkitmedia@naver.com</p>
-            <p className="mt-2 text-krds-gray-30">&copy; 2026 youkit. All Rights Reserved.</p>
-          </div>
+      {/* ── Footer ── */}
+      <footer style={{ marginTop: 60, borderTop: "1px solid #E5E5E5", background: "#fff" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px", textAlign: "center" }}>
+          <p style={{ fontSize: 13, color: "#6B6B6E", lineHeight: 1.8, letterSpacing: "-0.01em" }}>
+            본 사이트에 포함된 모든 콘텐츠의 저작권은 유킷(youkit)에 있으며,<br />
+            본 콘텐츠는 대덕대학교 RISE 사업 관련 원고 작성 및 학습 콘텐츠 개발을 위한 목적에 한하여 활용됩니다.
+          </p>
+          <p style={{ marginTop: 12, fontSize: 13, color: "#6B6B6E", letterSpacing: "-0.01em" }}>문의: youkitmedia@naver.com</p>
+          <p style={{ marginTop: 6, fontSize: 12, color: "#AEAEB2" }}>&copy; 2026 youkit. All Rights Reserved.</p>
         </div>
       </footer>
 
-      <div className="fixed -left-[9999px] top-0">
-        <div ref={printRef} className="w-[800px] bg-white p-10 font-sans" style={{ fontFamily: "Noto Sans KR, system-ui, sans-serif" }}>
-          <div className="mb-8 border-b border-neutral-200 pb-6">
-            <h1 className="text-2xl font-bold text-neutral-900">{projectName || "콘텐츠 원고"}</h1>
-            {author && <p className="mt-1 text-neutral-600">작성자: {author}</p>}
-            <p className="mt-2 text-neutral-600">콘텐츠 유형: {contentType} | 러닝타임: {totalMinutes}분</p>
-            <p className="mt-1 text-neutral-600">전체 러닝타임: {formatTime(totalActual)} / {formatTime(totalSeconds)} ({totalPercent}%)</p>
+      {/* ── PDF 인쇄용 숨김 영역 (로직 완전 동일) ── */}
+      <div style={{ position: "fixed", left: -9999, top: 0 }}>
+        <div ref={printRef} style={{ width: 800, background: "#fff", padding: 40, fontFamily: "Noto Sans KR, system-ui, sans-serif" }}>
+          <div style={{ marginBottom: 32, borderBottom: "1px solid #E5E5E5", paddingBottom: 24 }}>
+            <h1 style={{ fontSize: 24, fontWeight: 700, color: "#1C1C1E" }}>{projectName || "콘텐츠 원고"}</h1>
+            {author && <p style={{ marginTop: 4, color: "#6B6B6E" }}>작성자: {author}</p>}
+            <p style={{ marginTop: 8, color: "#6B6B6E" }}>콘텐츠 유형: {contentType} | 러닝타임: {totalMinutes}분</p>
+            <p style={{ marginTop: 4, color: "#6B6B6E" }}>전체 러닝타임: {formatTime(totalActual)} / {formatTime(totalSeconds)} ({totalPercent}%)</p>
           </div>
-          <div className="space-y-6">
+          <div>
             {sections.map((section, index) => {
               const dur = section.isCompleted ? section.targetDuration : calculateDuration(section.script)
               const pct = section.isCompleted ? 100 : section.targetDuration > 0 ? Math.round((dur / section.targetDuration) * 100) : 0
               return (
-                <div key={section.id} className="border-b border-neutral-100 pb-6">
-                  <div className="mb-2 flex items-center gap-2">
-                    <span className="text-lg font-bold text-neutral-900">#{index + 1} {section.name}</span>
-                    {section.isCompleted && <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">작성완료</span>}
+                <div key={section.id} style={{ borderBottom: "1px solid #F5F5F5", paddingBottom: 24, marginBottom: 24 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                    <span style={{ fontSize: 16, fontWeight: 700, color: "#1C1C1E" }}>#{index + 1} {section.name}</span>
+                    {section.isCompleted && <span style={{ fontSize: 11, fontWeight: 600, color: "#1A7F45", background: "#DCFCE7", borderRadius: 4, padding: "2px 8px" }}>작성완료</span>}
                   </div>
-                  <p className="mb-3 text-sm text-neutral-500">시간: {formatTime(dur)} / 목표: {formatTime(section.targetDuration)} / <span className="font-bold">{pct}%</span></p>
-                  {section.script && <div className="rounded bg-neutral-50 p-4"><p className="whitespace-pre-wrap text-sm leading-relaxed text-neutral-800">{section.script}</p></div>}
+                  <p style={{ fontSize: 13, color: "#6B6B6E", marginBottom: 12 }}>시간: {formatTime(dur)} / 목표: {formatTime(section.targetDuration)} / <strong>{pct}%</strong></p>
+                  {section.script && <div style={{ background: "#FAFAFA", borderRadius: 8, padding: 16 }}><p style={{ whiteSpace: "pre-wrap", fontSize: 13, lineHeight: 1.8, color: "#1C1C1E" }}>{section.script}</p></div>}
                 </div>
               )
             })}
           </div>
-          <div className="mt-8 flex items-center gap-2 text-xs text-neutral-400">
-            <FileText className="h-3 w-3" /><span>콘텐츠 원고 작성 도구</span>
+          <div style={{ marginTop: 32, display: "flex", alignItems: "center", gap: 6, color: "#AEAEB2", fontSize: 11 }}>
+            <FileText style={{ width: 12, height: 12 }} /><span>콘텐츠 원고 작성 도구</span>
           </div>
         </div>
       </div>
+
     </div>
   )
 }
