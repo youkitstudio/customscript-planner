@@ -9,7 +9,7 @@ import SectionCard, {
 } from "@/components/section-card"
 
 // ── 비밀번호 변경 시 여기만 수정 ──────────
-const SITE_PASSWORD = "youkit2026"
+const SITE_PASSWORD = "youkit2013"
 // ─────────────────────────────────────────
 
 interface SectionData {
@@ -358,46 +358,70 @@ function ContentPlannerMain() {
     finally { setIsLoadingFile(false) }
   }, [])
 
-  const downloadPDF = async () => {
-    const html2canvas = (await import("html2canvas")).default
-    const { jsPDF } = await import("jspdf")
-    if (!printRef.current) return
-    const canvas = await html2canvas(printRef.current, { scale: 2, useCORS: true, logging: false, backgroundColor: "#ffffff" })
-    const pdf = new jsPDF("p", "mm", "a4")
-    const pdfWidth = pdf.internal.pageSize.getWidth()
-    const pdfHeight = pdf.internal.pageSize.getHeight()
-    const marginX = 10, marginY = 15
-    const contentWidth = pdfWidth - marginX * 2
-    const contentHeight = pdfHeight - marginY * 2
-    const scale = contentWidth / canvas.width
-    const scaledPageHeight = contentHeight / scale
-    const findBestBreakPoint = (targetY: number, searchRange: number): number => {
-      const ctx = canvas.getContext("2d"); if (!ctx) return targetY
-      for (let y = Math.floor(targetY); y >= Math.max(0, Math.floor(targetY - searchRange)); y--) {
-        const data = ctx.getImageData(0, y, canvas.width, 1).data
-        let isWhite = true
-        for (let x = 0; x < canvas.width; x++) { const idx = x * 4; if (data[idx] < 250 || data[idx + 1] < 250 || data[idx + 2] < 250) { isWhite = false; break } }
-        if (isWhite) return y
-      }
-      return targetY
-    }
-    const pageBreaks: number[] = [0]; let currentY = 0
-    while (currentY < canvas.height) {
-      const nextTargetY = currentY + scaledPageHeight
-      if (nextTargetY >= canvas.height) { pageBreaks.push(canvas.height); break }
-      const bestBreakY = findBestBreakPoint(nextTargetY, 100)
-      pageBreaks.push(bestBreakY); currentY = bestBreakY
-    }
-    for (let i = 0; i < pageBreaks.length - 1; i++) {
-      if (i > 0) pdf.addPage()
-      const sourceY = pageBreaks[i], sourceHeight = pageBreaks[i + 1] - pageBreaks[i]
-      const pageCanvas = document.createElement("canvas")
-      pageCanvas.width = canvas.width; pageCanvas.height = sourceHeight
-      const ctx = pageCanvas.getContext("2d")
-      if (ctx) { ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height); ctx.drawImage(canvas, 0, sourceY, canvas.width, sourceHeight, 0, 0, canvas.width, sourceHeight) }
-      pdf.addImage(pageCanvas.toDataURL("image/png"), "PNG", marginX, marginY, contentWidth, sourceHeight * scale)
-    }
-    pdf.save(`${projectName || "원고"}_${Date.now()}.pdf`)
+  const downloadPDF = () => {
+    // window.print() 방식: 한글 완벽 지원 + 텍스트 복사 가능 + 용량 최소화
+    const toneLabel = TONE_STYLES.find(t => t.value === toneStyle)?.label || toneStyle
+    const speedInfo = READING_SPEEDS.find(s => s.value === readingSpeed)
+
+    const sectionsHtml = sections.map((section, idx) => {
+      const dur = section.isCompleted ? section.targetDuration : calculateDuration(section.script)
+      const pct = section.isCompleted ? 100 : section.targetDuration > 0 ? Math.round((dur / section.targetDuration) * 100) : 0
+      const scriptHtml = section.script
+        ? section.script.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>")
+        : "<span style='color:#aaa'>(작성된 내용 없음)</span>"
+      return `
+        <div class="section">
+          <div class="section-header">
+            <span class="section-num">#${idx + 1}</span>
+            <span class="section-name">${section.name || "(섹션명 없음)"}</span>
+            ${section.isCompleted ? '<span class="badge-done">작성완료</span>' : ''}
+          </div>
+          <div class="section-meta">목표 ${formatTime(section.targetDuration)} / 작성 ${formatTime(dur)} / <strong>${pct}%</strong></div>
+          <div class="script-box">${scriptHtml}</div>
+        </div>`
+    }).join("")
+
+    const html = `<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>${projectName || "원고"}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif; font-size: 13px; color: #1C1C1E; background: #fff; padding: 32px; max-width: 800px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .meta { color: #666; font-size: 12px; margin-bottom: 4px; }
+  .divider { border: none; border-top: 1px solid #E5E5E5; margin: 16px 0; }
+  .section { border-bottom: 1px solid #F0F0F0; padding-bottom: 20px; margin-bottom: 20px; page-break-inside: avoid; }
+  .section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .section-num { font-size: 13px; font-weight: 700; color: #6C5CE7; }
+  .section-name { font-size: 15px; font-weight: 700; }
+  .badge-done { font-size: 10px; font-weight: 700; color: #1A7F45; background: #DCFCE7; border-radius: 4px; padding: 2px 7px; }
+  .section-meta { font-size: 11px; color: #888; margin-bottom: 10px; }
+  .script-box { background: #FAFAFA; border-radius: 6px; padding: 14px 16px; font-size: 13px; line-height: 1.9; color: #333; white-space: pre-wrap; word-break: keep-all; }
+  .footer { margin-top: 24px; font-size: 11px; color: #AEAEB2; text-align: center; }
+  @media print {
+    body { padding: 0; }
+    .section { page-break-inside: avoid; }
+    @page { margin: 18mm 15mm; size: A4; }
+  }
+</style>
+</head>
+<body>
+  <h1>${projectName || "콘텐츠 원고"}</h1>
+  ${author ? `<p class="meta">작성자: ${author}</p>` : ""}
+  <p class="meta">콘텐츠 유형: ${contentType}  |  러닝타임: ${totalMinutes}분  |  말투: ${toneLabel}  |  낭독속도: ${speedInfo?.value || readingSpeed}자/분</p>
+  <p class="meta">전체 러닝타임: ${formatTime(totalActual)} / ${formatTime(totalSeconds)} (${totalPercent}%)</p>
+  <hr class="divider">
+  ${sectionsHtml}
+  <div class="footer">콘텐츠 원고 작성 도구 · YouKit</div>
+  <script>window.onload = function(){ window.print(); window.onafterprint = function(){ window.close(); }; }<\/script>
+</body>
+</html>`
+
+    const win = window.open("", "_blank", "width=900,height=700")
+    if (win) { win.document.write(html); win.document.close() }
   }
 
   const downloadText = useCallback(() => {
@@ -739,7 +763,7 @@ function ContentPlannerMain() {
                 padding: "11px 24px", fontSize: 14, fontWeight: 600,
                 cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em",
               }}>
-              <Download style={{ width: 15, height: 15 }} />PDF 다운로드
+              <Download style={{ width: 15, height: 15 }} />PDF 인쇄/저장
             </button>
           </div>
           <p style={{ fontSize: 12, color: "#AEAEB2", letterSpacing: "-0.01em" }}>
