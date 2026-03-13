@@ -78,7 +78,7 @@ export default function SectionCard({
 
   const handleGenerateNarration = async () => {
     if (!topic || topic.trim() === "") {
-      setError("나레이션 주제를 입력해주세요")
+      setError("작성 내용 또는 수정 요청을 입력해주세요")
       topicInputRef.current?.focus()
       return
     }
@@ -102,6 +102,7 @@ export default function SectionCard({
           toneStyle: toneStyle,
           targetChars: targetChars,
           duration: targetDuration,
+          existingScript: script || "",
         }),
       })
 
@@ -194,7 +195,7 @@ export default function SectionCard({
             title="원고 초기화"
           >
             <RotateCcw className="h-3 w-3" />
-            <span className="whitespace-nowrap">되돌리기</span>
+            <span className="whitespace-nowrap">원고 초기화</span>
           </button>
 
           <span className="whitespace-nowrap text-[13px] text-krds-gray-50">
@@ -230,7 +231,10 @@ export default function SectionCard({
           {/* ─── 나레이션 주제 + AI 버튼 가로 배치 ─── */}
           <div className="mb-3">
             <label className="mb-2 block text-[13px] font-medium text-krds-gray-70">
-              나레이션 주제 / 키워드
+              AI 원고 자동 작성 · 수정
+              <span className="ml-2 text-[11px] font-normal text-krds-gray-30">
+                {script ? "기존 원고를 수정하거나 새로운 내용을 요청하세요" : "작성하고 싶은 내용을 자유롭게 입력하세요"}
+              </span>
             </label>
             <div className="flex items-center gap-2">
               <input
@@ -238,7 +242,7 @@ export default function SectionCard({
                 type="text"
                 value={topic}
                 onChange={(e) => onTopicChange?.(e.target.value)}
-                placeholder="예) 포토샵 레이어 기초 개념과 활용법"
+                placeholder={script ? "예) 신뢰감 있는 어조로 바꿔줘 · 좀 더 쉽게 설명해줘" : "예) 직업윤리의 중요성과 사례 중심으로 설명해줘"}
                 className="flex-1 rounded-lg border-[1.5px] border-krds-border px-4 py-2.5 text-[15px] outline-none transition-colors placeholder:text-krds-gray-30 focus:border-krds-primary"
               />
               <button
