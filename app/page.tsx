@@ -389,22 +389,21 @@ function ContentPlannerMain() {
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif; font-size: 13px; color: #1C1C1E; background: #fff; padding: 32px; max-width: 800px; margin: 0 auto; }
-  h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
-  .meta { color: #666; font-size: 12px; margin-bottom: 4px; }
-  .divider { border: none; border-top: 1px solid #E5E5E5; margin: 16px 0; }
-  .section { border-bottom: 1px solid #F0F0F0; padding-bottom: 20px; margin-bottom: 20px; page-break-inside: avoid; }
-  .section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-  .section-num { font-size: 13px; font-weight: 700; color: #6C5CE7; }
-  .section-name { font-size: 15px; font-weight: 700; }
-  .badge-done { font-size: 10px; font-weight: 700; color: #1A7F45; background: #DCFCE7; border-radius: 4px; padding: 2px 7px; }
-  .section-meta { font-size: 11px; color: #888; margin-bottom: 10px; }
-  .script-box { background: #FAFAFA; border-radius: 6px; padding: 14px 16px; font-size: 13px; line-height: 1.9; color: #333; white-space: pre-wrap; word-break: keep-all; }
-  .footer { margin-top: 24px; font-size: 11px; color: #AEAEB2; text-align: center; }
+  body { font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif; font-size: 12px; color: #1C1C1E; background: #fff; padding: 20px; max-width: 800px; margin: 0 auto; }
+  h1 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .meta { color: #666; font-size: 11px; margin-bottom: 2px; }
+  .divider { border: none; border-top: 1px solid #E5E5E5; margin: 8px 0; }
+  .section { border-bottom: 1px solid #F0F0F0; padding-bottom: 10px; margin-bottom: 10px; }
+  .section-header { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+  .section-num { font-size: 12px; font-weight: 700; color: #6C5CE7; }
+  .section-name { font-size: 13px; font-weight: 700; }
+  .badge-done { font-size: 10px; font-weight: 700; color: #1A7F45; background: #DCFCE7; border-radius: 3px; padding: 1px 6px; }
+  .section-meta { font-size: 10px; color: #888; margin-bottom: 5px; }
+  .script-box { background: #FAFAFA; border-radius: 4px; padding: 8px 12px; font-size: 12px; line-height: 1.75; color: #333; white-space: pre-wrap; word-break: keep-all; }
+  .footer { margin-top: 16px; font-size: 10px; color: #AEAEB2; text-align: center; }
   @media print {
     body { padding: 0; }
-    .section { page-break-inside: avoid; }
-    @page { margin: 18mm 15mm; size: A4; }
+    @page { margin: 12mm 13mm; size: A4; }
   }
 </style>
 </head>
