@@ -144,26 +144,10 @@ export default function ChatPanel({ currentState, onAction, isGenerating, setIsG
   return (
     <div style={{
       display: "flex", flexDirection: "column", height: "100%",
-      background: "#fff", border: "1px solid #E5E5E5", borderRadius: 14,
-      overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+      background: "#fff",
+      overflow: "hidden",
     }}>
-      {/* 헤더 */}
-      <div style={{
-        padding: "14px 18px", borderBottom: "1px solid #F0F0F0",
-        display: "flex", alignItems: "center", gap: 8, flexShrink: 0,
-      }}>
-        <div style={{
-          width: 28, height: 28, borderRadius: 8,
-          background: "linear-gradient(135deg, #5B5BD6, #8B5CF6)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
-          <Sparkles size={13} color="#fff" />
-        </div>
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#1C1C1E", letterSpacing: "-0.02em" }}>AI 원고 어시스턴트</div>
-          <div style={{ fontSize: 11, color: "#AEAEB2" }}>자연어로 원고를 만들어보세요</div>
-        </div>
-      </div>
+      {/* 헤더: page5의 AI 패널 타이틀로 대체 → 숨김 */}
 
       {/* 메시지 영역 */}
       <div style={{ flex: 1, overflowY: "auto", padding: "16px 14px", display: "flex", flexDirection: "column", gap: 10 }}>
@@ -261,12 +245,12 @@ export default function ChatPanel({ currentState, onAction, isGenerating, setIsG
 
       {/* 입력 영역 */}
       <div style={{
-        padding: "10px 14px 14px", borderTop: "1px solid #F0F0F0", flexShrink: 0,
+        padding: "10px 14px 14px", flexShrink: 0,
       }}>
         <div style={{
           display: "flex", alignItems: "flex-end", gap: 7,
-          background: "#F7F7F8", borderRadius: 12, padding: "8px 8px 8px 12px",
-          border: "1.5px solid #E5E5E5", transition: "border-color 0.15s",
+          background: "#F7F7F8", padding: "8px 8px 8px 12px",
+          transition: "border-color 0.15s",
         }}
           onFocus={() => {}}
         >
