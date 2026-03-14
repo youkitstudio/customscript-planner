@@ -435,6 +435,39 @@ function ContentPlannerMain() {
     a.href = url; a.download = `${projectName || "원고"}_${Date.now()}.txt`; a.click(); URL.revokeObjectURL(url)
   }, [projectName, author, contentType, totalMinutes, sections, toneStyle, readingSpeed, totalTargetChars])
 
+  const handleOpenStoryKit = useCallback(() => {
+    const toneLabel = TONE_STYLES.find(t => t.value === toneStyle)?.label || toneStyle
+    const speedInfo = READING_SPEEDS.find(s => s.value === readingSpeed)
+    const speedLabel = speedInfo ? speedInfo.label + " (1분 = " + String(speedInfo.value) + "자)" : String(readingSpeed) + "자/분"
+    const sectionLines = sections.map((section, idx) =>
+      "\n[#" + String(idx + 1) + "] " + section.name +
+      "\n" + "-".repeat(40) +
+      "\n목표 시간: " + formatTime(section.targetDuration) +
+      "\n작성 시간: " + formatTime(calculateDuration(section.script)) +
+      "\n작성완료: " + (section.isCompleted ? "예" : "아니오") +
+      "\n\n" + (section.script || "(작성된 내용 없음)") + "\n"
+    ).join("\n")
+    const textContent =
+      (projectName || "제목없음") + "\n" + "=".repeat(50) +
+      "\n\n작성자: " + (author || "-") +
+      "\n콘텐츠 유형: " + contentType +
+      "\n전체 러닝타임: " + String(totalMinutes) + "분" +
+      "\n섹션 수: " + String(sections.length) + "개" +
+      "\n말투 스타일: " + toneLabel +
+      "\n낭독 속도: " + speedLabel +
+      "\n전체 목표 글자수: " + totalTargetChars.toLocaleString() + "자" +
+      "\n\n" + "=".repeat(50) + "\n\n" + sectionLines +
+      "\n\n" + "=".repeat(50) + "\n콘텐츠 원고 작성 도구 - youkit"
+    const blob = new Blob([textContent], { type: "text/plain;charset=utf-8" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = (projectName || "원고") + "_storykit.txt"
+    a.click()
+    URL.revokeObjectURL(url)
+    setTimeout(() => { window.open("https://storykit-eta.vercel.app", "_blank") }, 800)
+  }, [projectName, author, contentType, totalMinutes, sections, toneStyle, readingSpeed, totalTargetChars])
+
 
   // ── AI 채팅 액션 핸들러 ──
   const handleChatAction = useCallback((action: string, data: Record<string, unknown>) => {
@@ -855,23 +888,7 @@ function ContentPlannerMain() {
                 cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em",
                 boxShadow: "0 4px 14px rgba(108,92,231,0.35)",
               }}
-              onClick={() => {
-                const toneLabel = TONE_STYLES.find(t => t.value === toneStyle)?.label || toneStyle
-                const speedInfo = READING_SPEEDS.find(s => s.value === readingSpeed)
-                const speedLabel = speedInfo ? speedInfo.label + " (1분 = " + speedInfo.value + "자)" : readingSpeed + "자/분"
-                const lines = sections.map((section, idx) =>
-                  "\n[#" + (idx+1) + "] " + section.name + "\n" + "-".repeat(40) + "\n목표 시간: " + formatTime(section.targetDuration) + "\n작성 시간: " + formatTime(calculateDuration(section.script)) + "\n작성완료: " + (section.isCompleted ? "예" : "아니오") + "\n\n" + (section.script || "(작성된 내용 없음)") + "\n"
-                ).join("\n")
-                const textContent = (projectName || "제목없음") + "\n" + "=".repeat(50) + "\n\n작성자: " + (author || "-") + "\n콘텐츠 유형: " + contentType + "\n전체 러닝타임: " + totalMinutes + "분\n섹션 수: " + sections.length + "개\n말투 스타일: " + toneLabel + "\n낭독 속도: " + speedLabel + "\n전체 목표 글자수: " + totalTargetChars.toLocaleString() + "자\n\n" + "=".repeat(50) + "\n\n" + lines + "\n\n" + "=".repeat(50) + "\n콘텐츠 원고 작성 도구 - youkit"
-                const blob = new Blob([textContent], { type: "text/plain;charset=utf-8" })
-                const url = URL.createObjectURL(blob)
-                const a = document.createElement("a")
-                a.href = url
-                a.download = (projectName || "원고") + "_storykit.txt"
-                a.click()
-                URL.revokeObjectURL(url)
-                setTimeout(() => { window.open("https://storykit-eta.vercel.app", "_blank") }, 800)
-              }}
+              onClick={handleOpenStoryKit}
             >
               ✦ 스토리보드 자동 생성 →
             </button>
