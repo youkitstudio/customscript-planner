@@ -188,7 +188,7 @@ function ContentPlannerMain() {
   const [contentType, setContentType] = useState("강의 영상 스크립트")
   const [totalMinutes, setTotalMinutes] = useState(3)
   const [sectionCount, setSectionCount] = useState(3)
-  const [sections, setSections] = useState<SectionData[]>(() => createSections(7, 25 * 60))
+  const [sections, setSections] = useState<SectionData[]>(() => createSections(3, 3 * 60))
   const [isLoadingFile, setIsLoadingFile] = useState(false)
   const [isChatGenerating, setIsChatGenerating] = useState(false)
   const [chatPanelWidth, setChatPanelWidth] = useState(300)
@@ -571,66 +571,59 @@ function ContentPlannerMain() {
 
       {/* ── Header ── */}
       <header style={{ background: "#fff", borderBottom: "1px solid #E5E5E5", position: "sticky", top: 0, zIndex: 50 }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          {/* 로고 */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{
-              width: 28, height: 28, borderRadius: 7, background: "#5B5BD6",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 13, color: "#fff", fontWeight: 700,
-            }}>Y</div>
-            <span style={{ fontSize: 15, fontWeight: 700, color: "#1C1C1E", letterSpacing: "-0.03em" }}>
-              콘텐츠 원고 작성 도구
-            </span>
+        <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 20px", height: 52, display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+            <div style={{ width: 26, height: 26, borderRadius: 7, background: "#5B5BD6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#fff", fontWeight: 700 }}>Y</div>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#1C1C1E", letterSpacing: "-0.03em" }}>AI 원고 어시스턴트</span>
           </div>
-          {/* AI 스토리보드 자동 생성 버튼 */}
           <button
             type="button"
-            onClick={handleOpenStoryKit}
-            style={{
-              background: "linear-gradient(135deg, #6C5CE7 0%, #a855f7 100%)",
-              color: "#fff",
-              border: "none",
-              borderRadius: 8,
-              padding: "7px 16px",
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: "pointer",
-              letterSpacing: "-0.01em",
-              fontFamily: "inherit",
-            }}>
-            ✦ AI 스토리보드 자동 생성
+            onClick={() => window.open("https://storykit-eta.vercel.app", "_blank")}
+            style={{ display: "flex", alignItems: "center", gap: 4, background: "#F0F0FF", color: "#5B5BD6", border: "1px solid #DDDDF5", borderRadius: 6, padding: "5px 11px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}
+          >
+            <span>▶</span> 스토리보드 작성
+          </button>
+          <div style={{ flex: 1, display: "flex", gap: 8 }}>
+            <input type="text" value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="프로젝트 명"
+              style={{ flex: 3, borderRadius: 7, border: "1px solid #E5E5E5", background: "#F7F7F8", padding: "6px 12px", fontSize: 13, outline: "none", color: "#1C1C1E", fontFamily: "inherit" }} />
+            <input type="text" value={author} onChange={(e) => setAuthor(e.target.value)} placeholder="작성자"
+              style={{ flex: 1, borderRadius: 7, border: "1px solid #E5E5E5", background: "#F7F7F8", padding: "6px 12px", fontSize: 13, outline: "none", color: "#1C1C1E", fontFamily: "inherit" }} />
+          </div>
+          <button type="button" onClick={handleOpenStoryKit}
+            style={{ display: "flex", alignItems: "center", gap: 5, background: "linear-gradient(135deg, #6C5CE7 0%, #a855f7 100%)", color: "#fff", border: "none", borderRadius: 7, padding: "6px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap" }}>
+            ✦ AI 스토리보드 자동생성
           </button>
         </div>
       </header>
 
-      <main style={{ maxWidth: 1400, margin: "0 auto", padding: "20px 24px" }}>
-        <div style={{ display: "flex", gap: 18, alignItems: "flex-start" }}>
+      {/* ── 상단 진행 표시바 ── */}
+      <div style={{ background: "#fff", borderBottom: "1px solid #F0F0F0", position: "sticky", top: 52, zIndex: 45 }}>
+        <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 20px", height: 36, display: "flex", alignItems: "center", gap: 14 }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: "#5B5BD6", whiteSpace: "nowrap" }}>총 {sections.length}섹션</span>
+          <span style={{ fontSize: 12, color: "#6B6B6E", whiteSpace: "nowrap" }}>전체 러닝타임 <strong style={{ color: totalPercent > 105 ? "#DC2626" : totalPercent >= 95 ? "#1A7F45" : "#1C1C1E" }}>{totalPercent}%</strong></span>
+          <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 11, color: "#AEAEB2", whiteSpace: "nowrap" }}>{formatTime(totalActual)}</span>
+            <div style={{ flex: 1, height: 4, borderRadius: 99, background: "#F0F0F0", overflow: "hidden" }}>
+              <div style={{ height: "100%", borderRadius: 99, width: `${Math.min(totalPercent, 100)}%`, background: totalPercent > 105 ? "#DC2626" : totalPercent >= 95 ? "#1A7F45" : "#5B5BD6", transition: "width 0.3s" }} />
+            </div>
+            <span style={{ fontSize: 11, color: "#AEAEB2", whiteSpace: "nowrap" }}>{formatTime(totalSeconds)}</span>
+          </div>
+        </div>
+      </div>
+
+      <main style={{ maxWidth: 1400, margin: "0 auto", padding: "16px 20px" }}>
+        <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
 
           {/* ── 좌측: AI 채팅 패널 ── */}
-          <div style={{ width: chatPanelWidth, flexShrink: 0, position: "sticky", top: 76, height: "calc(100vh - 96px)", display: "flex" }}>
+          <div style={{ width: chatPanelWidth, flexShrink: 0, position: "sticky", top: 90, height: "calc(100vh - 110px)", display: "flex" }}>
             <ChatPanel
-              currentState={{
-                projectName,
-                contentType,
-                totalMinutes,
-                sectionCount,
-                toneStyle,
-                readingSpeed,
-                sections: sections.map(s => ({ name: s.name, targetDuration: s.targetDuration, script: s.script })),
-              }}
+              currentState={{ projectName, contentType, totalMinutes, sectionCount, toneStyle, readingSpeed, sections: sections.map(s => ({ name: s.name, targetDuration: s.targetDuration, script: s.script })) }}
               onAction={handleChatAction}
               isGenerating={isChatGenerating}
               setIsGenerating={setIsChatGenerating}
             />
-            {/* 드래그 핸들 */}
-            <div
-              onMouseDown={startResize}
-              style={{
-                width: 4, cursor: "col-resize", flexShrink: 0,
-                background: "transparent", transition: "background 0.15s",
-                marginLeft: "auto",
-              }}
+            <div onMouseDown={startResize}
+              style={{ width: 4, cursor: "col-resize", flexShrink: 0, background: "transparent", transition: "background 0.15s" }}
               onMouseEnter={e => (e.currentTarget.style.background = "#5B5BD6")}
               onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
             />
@@ -638,28 +631,6 @@ function ContentPlannerMain() {
 
           {/* ── 우측: 편집 영역 ── */}
           <div style={{ flex: 1, minWidth: 0 }}>
-
-        {/* ── 프로젝트 정보 입력 ── */}
-        <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
-          <input
-            type="text" value={projectName}
-            onChange={(e) => setProjectName(e.target.value)}
-            placeholder="프로젝트 명 (예: 재난영화 홍보영상)"
-            style={{ ...inputBase, flex: 3 }}
-            onFocus={e => (e.target.style.borderColor = "#5B5BD6")}
-            onBlur={e => (e.target.style.borderColor = "#E5E5E5")}
-          />
-          <input
-            type="text" value={author}
-            onChange={(e) => setAuthor(e.target.value)}
-            placeholder="작성자"
-            style={{ ...inputBase, flex: 2 }}
-            onFocus={e => (e.target.style.borderColor = "#5B5BD6")}
-            onBlur={e => (e.target.style.borderColor = "#E5E5E5")}
-          />
-        </div>
-
-        {/* ── 설정 카드 ── */}
         <div style={{ ...card, padding: "24px", marginBottom: 16 }}>
 
           {/* 상단 3열: 콘텐츠 유형 / 러닝타임 / 섹션 수 */}
@@ -785,7 +756,7 @@ function ContentPlannerMain() {
           </div>
         </div>
 
-        {/* ── 타임라인 ── */}
+
         <div style={{ ...card, padding: "20px 24px", marginBottom: 16 }}>
           <Timeline
             sections={sections.map((s) => ({ id: s.id, name: s.name, targetDuration: s.targetDuration, color: s.color }))}
@@ -796,7 +767,7 @@ function ContentPlannerMain() {
           />
         </div>
 
-        {/* ── 프로젝트 저장/불러오기 ── */}
+
         <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 16 }}>
           <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isLoadingFile}
             style={{
@@ -824,7 +795,6 @@ function ContentPlannerMain() {
           </button>
         </div>
 
-        {/* ── 전체 진행률 (스티키) ── */}
         <div style={{
           ...card, padding: "14px 24px", marginBottom: 24,
           position: "sticky", top: 60, zIndex: 40,
@@ -859,7 +829,6 @@ function ContentPlannerMain() {
           )}
         </div>
 
-        {/* ── 섹션 카드 목록 ── */}
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {sections.map((section, index) => (
             <SectionCard
@@ -885,7 +854,6 @@ function ContentPlannerMain() {
           ))}
         </div>
 
-        {/* ── 다운로드 ── */}
         <div style={{ marginTop: 40, display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
           <div style={{ display: "flex", gap: 10 }}>
             <button type="button" onClick={downloadText}
@@ -912,9 +880,26 @@ function ContentPlannerMain() {
 
           {/* ── 스토리보드 자동 생성 버튼 ── */}
           <div style={{ width: "100%", maxWidth: 520, marginTop: 8 }}>
-            <button
-              type="button"
-              onClick={handleOpenStoryKit}
+            <button type="button" onClick={() => {
+              // 1. TXT 자동 다운로드
+              const toneLabel = TONE_STYLES.find(t => t.value === toneStyle)?.label || toneStyle
+              const speedInfo = READING_SPEEDS.find(s => s.value === readingSpeed)
+              const speedLabel = speedInfo ? `${speedInfo.label} (1분 = ${speedInfo.value}자)` : `${readingSpeed}자/분`
+              const textContent = `${projectName || "제목없음"}\n${"=".repeat(50)}\n\n작성자: ${author || "-"}\n콘텐츠 유형: ${contentType}\n전체 러닝타임: ${totalMinutes}분\n섹션 수: ${sections.length}개\n말투 스타일: ${toneLabel}\n낭독 속도: ${speedLabel}\n전체 목표 글자수: ${totalTargetChars.toLocaleString()}자\n\n${"=".repeat(50)}\n\n${sections.map((section, idx) => `\n[#${idx + 1}] ${section.name}\n${"-".repeat(40)}\n목표 시간: ${formatTime(section.targetDuration)}\n작성 시간: ${formatTime(calculateDuration(section.script))}\n작성완료: ${section.isCompleted ? "예" : "아니오"}\n\n${section.script || "(작성된 내용 없음)"}\n`).join("\n")}\n\n${"=".repeat(50)}\n콘텐츠 원고 작성 도구 - youkit`
+
+              const blob = new Blob([textContent], { type: "text/plain;charset=utf-8" })
+              const url = URL.createObjectURL(blob)
+              const a = document.createElement("a")
+              a.href = url
+              a.download = `${projectName || "원고"}_storykit.txt`
+              a.click()
+              URL.revokeObjectURL(url)
+
+              // 2. 1초 후 StoryKit 새 탭으로 열기
+              setTimeout(() => {
+                window.open("https://storykit-eta.vercel.app", "_blank")
+              }, 800)
+            }}
               style={{
                 width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                 background: "linear-gradient(135deg, #6C5CE7 0%, #a855f7 100%)",
@@ -922,8 +907,7 @@ function ContentPlannerMain() {
                 padding: "15px 24px", fontSize: 15, fontWeight: 700,
                 cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em",
                 boxShadow: "0 4px 14px rgba(108,92,231,0.35)",
-              }}
-            >
+              }}>
               ✦ 스토리보드 자동 생성 →
             </button>
             <p style={{ fontSize: 11, color: "#AEAEB2", textAlign: "center", marginTop: 6, letterSpacing: "-0.01em" }}>
@@ -935,23 +919,11 @@ function ContentPlannerMain() {
             다운로드 버튼 클릭 후 약 3초 정도 후에 다운로드가 진행됩니다.
           </p>
         </div>
+
           </div>
         </div>
       </main>
 
-      {/* ── Footer ── */}
-      <footer style={{ marginTop: 60, borderTop: "1px solid #E5E5E5", background: "#fff" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px", textAlign: "center" }}>
-          <p style={{ fontSize: 13, color: "#6B6B6E", lineHeight: 1.8, letterSpacing: "-0.01em" }}>
-            본 사이트에 포함된 모든 콘텐츠의 저작권은 유킷(youkit)에 있으며,<br />
-            본 콘텐츠는 대덕대학교 RISE 사업 관련 원고 작성 및 학습 콘텐츠 개발을 위한 목적에 한하여 활용됩니다.
-          </p>
-          <p style={{ marginTop: 12, fontSize: 13, color: "#6B6B6E", letterSpacing: "-0.01em" }}>문의: youkitmedia@naver.com</p>
-          <p style={{ marginTop: 6, fontSize: 12, color: "#AEAEB2" }}>&copy; 2026 youkit. All Rights Reserved.</p>
-        </div>
-      </footer>
-
-      {/* ── PDF 인쇄용 숨김 영역 (로직 완전 동일) ── */}
       <div style={{ position: "fixed", left: -9999, top: 0 }}>
         <div ref={printRef} style={{ width: 800, background: "#fff", padding: 40, fontFamily: "Noto Sans KR, system-ui, sans-serif" }}>
           <div style={{ marginBottom: 32, borderBottom: "1px solid #E5E5E5", paddingBottom: 24 }}>
@@ -985,6 +957,17 @@ function ContentPlannerMain() {
     </div>
   )
 }
+
+
+// ── 최종 export ───────────────────────────
+export default function ContentPlanner() {
+  const [unlocked, setUnlocked] = useState(false)
+  if (!unlocked) return <PasswordGate onUnlock={() => setUnlocked(true)} />
+
+    </div>
+  )
+}
+
 
 // ── 최종 export ───────────────────────────
 export default function ContentPlanner() {
