@@ -164,7 +164,7 @@ export default function ChatPanel({ currentState, onAction, isGenerating, setIsG
               </div>
             )}
             <div style={{
-              maxWidth: "88%",
+              maxWidth: "100%",
               background: msg.role === "user" ? "#5B5BD6" : "#F5F5F7",
               color: msg.role === "user" ? "#fff" : "#1C1C1E",
               borderRadius: msg.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
@@ -173,6 +173,7 @@ export default function ChatPanel({ currentState, onAction, isGenerating, setIsG
               lineHeight: 1.65,
               whiteSpace: "pre-wrap",
               letterSpacing: "-0.01em",
+              wordBreak: "break-word",
             }}>
               {msg.content}
             </div>

@@ -587,16 +587,16 @@ function ContentPlannerMain() {
         display: "flex", alignItems: "center", padding: "0 16px", gap: 10,
         zIndex: 50,
       }}>
-        {/* 로고 + 앱명 – 아이콘: Sparkles 계열 사각형, 텍스트 18px */}
+        {/* 로고 + 앱명 – 아이콘: 원형 보라 그라디언트 (이전 AI 이미지 스타일) */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
           <div style={{
-            width: 32, height: 32, borderRadius: 9,
+            width: 32, height: 32, borderRadius: "50%",
             background: "linear-gradient(135deg, #6C5CE7 0%, #a855f7 100%)",
             display: "flex", alignItems: "center", justifyContent: "center",
             flexShrink: 0,
           }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
             </svg>
           </div>
           <span style={{ fontSize: 18, fontWeight: 700, color: "#1C1C1E", letterSpacing: "-0.04em" }}>
@@ -632,8 +632,8 @@ function ContentPlannerMain() {
         display: "flex", alignItems: "center",
         padding: "0 16px", gap: 10, zIndex: 45,
       }}>
-        {/* 총 N섹션 */}
-        <span style={{ fontSize: 12, fontWeight: 700, color: "#1C1C1E", whiteSpace: "nowrap", flexShrink: 0 }}>
+        {/* 총 N섹션: 좌측 여백 56px */}
+        <span style={{ fontSize: 12, fontWeight: 700, color: "#1C1C1E", whiteSpace: "nowrap", flexShrink: 0, paddingLeft: 56 }}>
           총 {sections.length}섹션
         </span>
 
@@ -645,8 +645,8 @@ function ContentPlannerMain() {
           </strong>
         </span>
 
-        {/* 진행 바: 0:00 ━━━━━━ 3:00 — flex 1로 최대한 확장 */}
-        <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 120 }}>
+        {/* 진행 바: minWidth를 줄여 프로젝트명 위치 유지 */}
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 60 }}>
           <span style={{ fontSize: 11, fontWeight: 600, color: "#1C1C1E", whiteSpace: "nowrap", flexShrink: 0 }}>
             {formatTime(totalActual)}
           </span>
@@ -663,7 +663,7 @@ function ContentPlannerMain() {
           </span>
         </div>
 
-        {/* 프로젝트명: 600px, border 라인 제거 */}
+        {/* 프로젝트명: 600px, border 없음 */}
         <input
           type="text" value={projectName}
           onChange={(e) => setProjectName(e.target.value)}
@@ -676,14 +676,14 @@ function ContentPlannerMain() {
           }}
         />
 
-        {/* 작성자: 110px */}
+        {/* 작성자: border 완전 제거 */}
         <input
           type="text" value={author}
           onChange={(e) => setAuthor(e.target.value)}
           placeholder="작성자"
           style={{
             width: 110, flexShrink: 1, minWidth: 80,
-            borderRadius: 7, border: "1px solid #E5E5E5",
+            borderRadius: 7, border: "none",
             background: "#F7F7F8", padding: "5px 10px",
             fontSize: 13, outline: "none", color: "#1C1C1E", fontFamily: "inherit",
           }}
@@ -736,17 +736,13 @@ function ContentPlannerMain() {
             display: "flex", alignItems: "center", justifyContent: "space-between",
             flexShrink: 0,
           }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{
-                width: 28, height: 28, borderRadius: 8,
-                background: "linear-gradient(135deg, #6C5CE7 0%, #a855f7 100%)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                flexShrink: 0,
-              }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                </svg>
-              </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+              {/* 작은 AI 불릿 */}
+              <span style={{
+                width: 9, height: 9, borderRadius: "50%",
+                background: "linear-gradient(135deg, #6C5CE7, #a855f7)",
+                display: "inline-block", flexShrink: 0,
+              }} />
               <span style={{ fontSize: 16, fontWeight: 700, color: "#1C1C1E", letterSpacing: "-0.03em" }}>
                 AI 원고요청
               </span>
@@ -815,7 +811,7 @@ function ContentPlannerMain() {
                   style={{
                     display: "flex", alignItems: "center", gap: 6,
                     background: "#F5F5F5", color: "#3A3A3C",
-                    border: "none", borderRadius: 8,
+                    border: "1px solid #E5E5E5", borderRadius: 8,
                     padding: "7px 14px", fontSize: 13, fontWeight: 600,
                     cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em",
                   }}>
