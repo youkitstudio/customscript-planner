@@ -8,12 +8,8 @@ export async function POST(req: NextRequest) {
     const minutes = Math.floor(duration / 60)
     const seconds = duration % 60
     const timeStr = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
-
-    // 90%~110% 범위로 설정
     const minChars = Math.round(targetChars * 0.90)
     const maxChars = Math.round(targetChars * 1.10)
-
-    // 기존 원고가 있으면 수정 모드, 없으면 신규 생성 모드
     const isEditMode = existingScript && existingScript.trim().length > 20
 
     const charRule = `
@@ -76,18 +72,12 @@ ${topic}
     })
 
     const data = await response.json()
-
     if (!response.ok) {
-      console.error("Anthropic API Error:", data)
       return NextResponse.json({ error: JSON.stringify(data) }, { status: 500 })
     }
-
-    const narration =
-      data.content?.[0]?.type === "text" ? data.content[0].text : ""
-
+    const narration = data.content?.[0]?.type === "text" ? data.content[0].text : ""
     return NextResponse.json({ narration })
   } catch (error) {
-    console.error("Route Error:", error)
     return NextResponse.json({ error: String(error) }, { status: 500 })
   }
 }

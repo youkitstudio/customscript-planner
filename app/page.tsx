@@ -7,6 +7,7 @@ import SectionCard, {
   calculateDuration,
   formatTime,
 } from "@/components/section-card"
+import ChatPanel from "@/components/chat-panel"
 
 // ── 비밀번호 변경 시 여기만 수정 ──────────
 const SITE_PASSWORD = "youkit2026"
@@ -189,6 +190,7 @@ function ContentPlannerMain() {
   const [sectionCount, setSectionCount] = useState(7)
   const [sections, setSections] = useState<SectionData[]>(() => createSections(7, 25 * 60))
   const [isLoadingFile, setIsLoadingFile] = useState(false)
+  const [isChatGenerating, setIsChatGenerating] = useState(false)
   const [isCustomRuntime, setIsCustomRuntime] = useState(false)
   const [customMinutes, setCustomMinutes] = useState(0)
   const [customSeconds, setCustomSeconds] = useState(0)
@@ -423,6 +425,48 @@ function ContentPlannerMain() {
     if (win) { win.document.write(html); win.document.close() }
   }
 
+
+  // ── AI 채팅 액션 핸들러 ──────────────────
+  const handleChatAction = useCallback((action: string, data: Record<string, unknown>) => {
+    if (action === "update_settings" || action === "generate_all" || action === "update_sections") {
+      if (data.projectName) setProjectName(data.projectName as string)
+      if (data.contentType) setContentType(data.contentType as string)
+      if (data.toneStyle) setToneStyle(data.toneStyle as string)
+      if (data.readingSpeed) setReadingSpeed(data.readingSpeed as number)
+      if (data.totalMinutes) {
+        const mins = data.totalMinutes as number
+        setTotalMinutes(mins)
+        if (!RUNTIME_OPTIONS.includes(mins)) {
+          setIsCustomRuntime(true)
+          setCustomMinutes(Math.floor(mins))
+          setCustomSeconds(Math.round((mins % 1) * 60))
+        } else {
+          setIsCustomRuntime(false)
+          setCustomMinutes(0)
+          setCustomSeconds(0)
+        }
+      }
+      if (data.sections && Array.isArray(data.sections)) {
+        const newSections = (data.sections as Array<{name: string; targetDuration: number; script?: string}>).map((s, i) => ({
+          id: generateId(),
+          name: s.name || "",
+          targetDuration: s.targetDuration || Math.round((totalMinutes * 60) / (data.sections as unknown[]).length),
+          script: s.script || "",
+          color: getSectionColor(i),
+          isCompleted: false,
+          topic: "",
+          narrationHistory: [],
+        }))
+        setSections(newSections)
+        setSectionCount(newSections.length)
+      }
+    }
+    if (action === "generate_section" && data.sectionIndex !== undefined) {
+      const idx = data.sectionIndex as number
+      setSections(prev => prev.map((s, i) => i === idx ? { ...s, script: (data.script as string) || "" } : s))
+    }
+  }, [totalMinutes])
+
   const downloadText = useCallback(() => {
     const toneLabel = TONE_STYLES.find(t => t.value === toneStyle)?.label || toneStyle
     const speedInfo = READING_SPEEDS.find(s => s.value === readingSpeed)
@@ -497,7 +541,29 @@ function ContentPlannerMain() {
         </div>
       </header>
 
-      <main style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 24px" }}>
+      <main style={{ maxWidth: 1400, margin: "0 auto", padding: "20px 24px" }}>
+        <div style={{ display: "flex", gap: 18, alignItems: "flex-start" }}>
+
+          {/* ── 좌측: AI 채팅 패널 ── */}
+          <div style={{ width: 300, flexShrink: 0, position: "sticky", top: 76, height: "calc(100vh - 96px)" }}>
+            <ChatPanel
+              currentState={{
+                projectName,
+                contentType,
+                totalMinutes,
+                sectionCount,
+                toneStyle,
+                readingSpeed,
+                sections: sections.map(s => ({ name: s.name, targetDuration: s.targetDuration, script: s.script })),
+              }}
+              onAction={handleChatAction}
+              isGenerating={isChatGenerating}
+              setIsGenerating={setIsChatGenerating}
+            />
+          </div>
+
+          {/* ── 우측: 편집 영역 ── */}
+          <div style={{ flex: 1, minWidth: 0 }}>
 
         {/* ── 프로젝트 정보 입력 ── */}
         <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
@@ -810,6 +876,8 @@ function ContentPlannerMain() {
           <p style={{ fontSize: 12, color: "#AEAEB2", letterSpacing: "-0.01em" }}>
             다운로드 버튼 클릭 후 약 3초 정도 후에 다운로드가 진행됩니다.
           </p>
+        </div>
+          </div>
         </div>
       </main>
 
