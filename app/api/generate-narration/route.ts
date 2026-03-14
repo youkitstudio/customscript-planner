@@ -1,65 +1,149 @@
 import { NextRequest, NextResponse } from "next/server"
 
+export const maxDuration = 60
+
 export async function POST(req: NextRequest) {
   try {
-    const { topic, contentType, toneStyle, targetChars, duration, existingScript } =
+    const { messages, currentState, attachmentBase64, attachmentType, attachmentName } =
       await req.json()
 
-    const minutes = Math.floor(duration / 60)
-    const seconds = duration % 60
-    const timeStr = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+    // 현재 프로젝트 상태를 컨텍스트로 포함
+    const stateContext = currentState
+      ? `
+[현재 프로젝트 상태]
+- 프로젝트명: ${currentState.projectName || "(없음)"}
+- 콘텐츠 유형: ${currentState.contentType || "강의 영상 스크립트"}
+- 러닝타임: ${currentState.totalMinutes}분
+- 섹션 수: ${currentState.sectionCount}개
+- 말투: ${currentState.toneStyle}
+- 낭독속도: ${currentState.readingSpeed}자/분
+- 섹션 목록:
+${currentState.sections?.map((s: { name: string; targetDuration: number; script: string }, i: number) =>
+  `  #${i+1} ${s.name || "(이름없음)"} (목표: ${Math.floor(s.targetDuration/60)}분${s.targetDuration%60}초, 원고: ${s.script ? s.script.length+"자" : "미작성"})`
+).join("\n") || "  (섹션 없음)"}
+`
+      : ""
 
-    // 90%~110% 범위로 설정
-    const minChars = Math.round(targetChars * 0.90)
-    const maxChars = Math.round(targetChars * 1.10)
+    // 첨부파일 처리
+    let attachmentContext = ""
+    const apiMessages: Array<{role: string; content: string | Array<{type: string; [key: string]: unknown}>}> = []
 
-    // 기존 원고가 있으면 수정 모드, 없으면 신규 생성 모드
-    const isEditMode = existingScript && existingScript.trim().length > 20
+    if (attachmentBase64 && attachmentType) {
+      attachmentContext = `\n[첨부파일: ${attachmentName || "파일"}]\n위 첨부파일의 내용을 분석하여 원고 작성에 활용하세요.\n`
 
-    const charRule = `
-━━━━━━━━━━━━━━━━
-[글자수 절대 규칙 - 반드시 준수]
-- 목표 글자수: ${targetChars}자 (공백 제외)
-- 허용 범위: 최소 ${minChars}자 ~ 최대 ${maxChars}자
-- ${minChars}자 미만이면 절대 안 됨. 내용이 부족하면 아래 방법으로 채울 것:
-  1) 핵심 개념을 더 상세히 풀어서 설명
-  2) 구체적인 예시나 사례 추가
-  3) "왜 중요한가"에 대한 이유와 근거 보완
-  4) 학습자에게 질문을 던지거나 생각해볼 포인트 추가
-- 완성 후 스스로 글자수를 세어보고 ${minChars}자 미만이면 내용을 더 추가할 것
-━━━━━━━━━━━━━━━━`
+      // 첨부파일이 있는 경우 멀티모달 메시지 구성
+      const userMessage = messages[messages.length - 1]?.content || ""
 
-    const userPrompt = isEditMode
-      ? `당신은 영상 콘텐츠 나레이션 전문 작가입니다.
+      const contentParts: Array<{type: string; [key: string]: unknown}> = []
 
-콘텐츠 유형: ${contentType}
-목표 시간: ${timeStr} (${duration}초)
-${charRule}
+      if (attachmentType.startsWith("image/")) {
+        contentParts.push({
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: attachmentType,
+            data: attachmentBase64,
+          }
+        })
+      } else if (attachmentType === "application/pdf") {
+        contentParts.push({
+          type: "document",
+          source: {
+            type: "base64",
+            media_type: "application/pdf",
+            data: attachmentBase64,
+          }
+        })
+      }
 
-[기존 원고]
-${existingScript}
+      contentParts.push({ type: "text", text: userMessage })
 
-[수정 요청]
-${topic}
+      // 이전 메시지들 (첨부파일 제외)
+      for (let i = 0; i < messages.length - 1; i++) {
+        apiMessages.push({ role: messages[i].role, content: messages[i].content })
+      }
+      apiMessages.push({ role: "user", content: contentParts })
 
-[작성 규칙]
-- 기존 원고의 핵심 내용과 구조를 유지하면서 수정 요청 사항을 반영
-- 문단 구분 없이 자연스럽게 이어지는 하나의 나레이션으로 작성
-- 나레이션 텍스트만 출력 (글자수 표기, 설명, 주석 없이)`
-      : `당신은 영상 콘텐츠 나레이션 전문 작가입니다.
+    } else {
+      // 일반 텍스트 메시지
+      for (const msg of messages) {
+        apiMessages.push({ role: msg.role, content: msg.content })
+      }
+    }
 
-콘텐츠 유형: ${contentType}
-말투: ${toneStyle}
-목표 시간: ${timeStr} (${duration}초)
-${charRule}
+    const systemPrompt = `당신은 영상 콘텐츠 원고 작성을 도와주는 AI 어시스턴트입니다.
+사용자의 요청을 분석하여 적절한 액션을 JSON으로 반환합니다.
+${stateContext}
+${attachmentContext}
 
-[작성 요청]
-${topic}
+## 응답 규칙
 
-[작성 규칙]
-- 문단 구분 없이 자연스럽게 이어지는 하나의 나레이션으로 작성
-- 나레이션 텍스트만 출력 (글자수 표기, 설명, 주석 없이)
-- 강사가 카메라 앞에서 말하듯 자연스러운 구어체로 작성`
+반드시 아래 JSON 형식으로만 응답하세요 (마크다운 코드블록 없이 순수 JSON):
+
+{
+  "message": "사용자에게 보여줄 자연어 답변 (친근하고 간결하게)",
+  "action": "none | update_settings | generate_all | generate_section | update_sections",
+  "data": { ... }
+}
+
+## action 유형
+
+### none
+일반 대화, 질문 답변, 정보 제공 시 사용.
+data: {}
+
+### update_settings
+프로젝트 설정(러닝타임, 섹션수, 콘텐츠유형, 말투 등) 변경 요청 시.
+data: {
+  "projectName": "string (선택)",
+  "totalMinutes": number (선택),
+  "sectionCount": number (선택),
+  "contentType": "string (선택)",
+  "toneStyle": "friendly|formal|energetic|calm (선택)",
+  "readingSpeed": 220|280|340 (선택),
+  "sections": [{ "name": "섹션명", "targetDuration": 초 }] (선택 - 섹션명 설정 시)
+}
+
+### generate_all
+전체 섹션 원고를 일괄 생성할 때. 섹션 구성(이름/시간)과 원고 모두 포함.
+data: {
+  "projectName": "string (선택)",
+  "totalMinutes": number (선택),
+  "contentType": "string (선택)",
+  "toneStyle": "string (선택)",
+  "sections": [
+    {
+      "name": "섹션명",
+      "targetDuration": 초단위 숫자,
+      "script": "완성된 나레이션 원고 (목표글자수의 90~110% 분량)"
+    }
+  ]
+}
+
+스크립트 분량 계산:
+- 목표글자수 = (targetDuration / 60) * readingSpeed (현재: ${currentState?.readingSpeed || 220}자/분)
+- 각 섹션의 script는 목표글자수의 90~110% 분량으로 작성
+- 공백 제외 기준
+
+### generate_section
+특정 섹션 하나만 원고 생성/수정.
+data: {
+  "sectionIndex": number,
+  "script": "완성된 나레이션 원고"
+}
+
+### update_sections
+섹션명, 시간 배분 등 구성만 변경 (원고 유지).
+data: {
+  "sections": [{ "name": "섹션명", "targetDuration": 초 }]
+}
+
+## 중요 규칙
+- generate_all 시 섹션별 원고는 반드시 충분한 분량으로 작성 (90~110% 준수)
+- 원고는 강사가 카메라 앞에서 말하듯 자연스러운 구어체
+- 이미지/PDF 첨부 시 해당 내용을 충분히 분석하여 원고에 반영
+- 러닝타임을 명시하지 않으면 현재 설정(${currentState?.totalMinutes || 25}분) 유지
+- 섹션 수를 명시하지 않으면 현재 설정(${currentState?.sectionCount || 7}개) 유지`
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -69,9 +153,10 @@ ${topic}
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 4096,
-        messages: [{ role: "user", content: userPrompt }],
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 8000,
+        system: systemPrompt,
+        messages: apiMessages,
       }),
     })
 
@@ -82,10 +167,21 @@ ${topic}
       return NextResponse.json({ error: JSON.stringify(data) }, { status: 500 })
     }
 
-    const narration =
-      data.content?.[0]?.type === "text" ? data.content[0].text : ""
+    const rawText = data.content?.[0]?.type === "text" ? data.content[0].text : "{}"
 
-    return NextResponse.json({ narration })
+    // JSON 파싱 시도
+    let parsed
+    try {
+      // 코드블록 제거 후 파싱
+      const clean = rawText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim()
+      parsed = JSON.parse(clean)
+    } catch {
+      // 파싱 실패 시 일반 메시지로 처리
+      parsed = { message: rawText, action: "none", data: {} }
+    }
+
+    return NextResponse.json(parsed)
+
   } catch (error) {
     console.error("Route Error:", error)
     return NextResponse.json({ error: String(error) }, { status: 500 })
