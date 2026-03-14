@@ -232,7 +232,11 @@ data: { "projectName"?:string, "totalMinutes"?:number, "sectionCount"?:number,
 generate_all — 전체 원고 생성 (섹션 구성 + 원고 포함)
 ★ targetDuration은 위 "섹션 구성 및 시간 배분" 표의 값을 그대로 사용 (균등 배분 금지)
 ★ script는 해당 targetDuration 기준 목표 글자수의 90~110% 반드시 준수
-data: { "sections": [{"name":string,"targetDuration":number,"script":string}] }
+★ totalMinutes는 반드시 포함 — 섹션 targetDuration 합계를 분 단위로 변환한 값 (예: 60초 → 1)
+data: {
+  "totalMinutes": number (필수 — 섹션 합산 초 ÷ 60, 예: 18+30+12=60초 → 1),
+  "sections": [{"name":string,"targetDuration":number,"script":string}]
+}
 
 generate_section — 특정 섹션만 생성/수정
 ★ 해당 섹션 targetDuration 기준 목표 글자수 90~110% 반드시 준수
@@ -284,9 +288,20 @@ data: { "sections": [{"name":string,"targetDuration":number}] }
       parsed = { message: rawText, action: "none", data: {} }
     }
 
-    // ── 글자수 검증 로그 ────────────────────────────────────────────
+    // ── generate_all: totalMinutes 누락 시 섹션 합산으로 자동 보완 ──
     if (parsed.action === "generate_all" && Array.isArray(parsed.data?.sections)) {
       const secs = parsed.data.sections as Array<{ name: string; targetDuration: number; script: string }>
+
+      // totalMinutes가 없으면 섹션 targetDuration 합산으로 자동 설정
+      if (!parsed.data.totalMinutes) {
+        const sumSec = secs.reduce((s, sec) => s + (sec.targetDuration || 0), 0)
+        if (sumSec > 0) {
+          parsed.data.totalMinutes = sumSec / 60
+          console.log(`[자동보완] totalMinutes=${parsed.data.totalMinutes} (섹션 합산 ${sumSec}초)`)
+        }
+      }
+
+      // 글자수 검증 로그
       let shortCount = 0
       secs.forEach((s, i) => {
         const charCount  = (s.script || "").replace(/\s/g, "").length

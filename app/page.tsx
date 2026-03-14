@@ -483,19 +483,40 @@ function ContentPlannerMain() {
       if (data.contentType) setContentType(data.contentType as string)
       if (data.toneStyle) setToneStyle(data.toneStyle as string)
       if (data.readingSpeed) setReadingSpeed(data.readingSpeed as number)
+
+      // ── totalMinutes 결정 ──────────────────────────────────────────
+      // 우선순위 1: AI가 명시적으로 반환한 totalMinutes
+      // 우선순위 2: sections가 있으면 targetDuration 합산으로 자동 계산
+      let newTotalMinutes: number | null = null
+
       if (data.totalMinutes) {
-        const mins = data.totalMinutes as number
+        newTotalMinutes = data.totalMinutes as number
+      } else if (data.sections && Array.isArray(data.sections)) {
+        // AI가 섹션 시간을 배분했지만 totalMinutes를 빠뜨린 경우 → 합산
+        const sumSeconds = (data.sections as Array<{ targetDuration: number }>)
+          .reduce((sum, s) => sum + (s.targetDuration || 0), 0)
+        if (sumSeconds > 0) {
+          newTotalMinutes = sumSeconds / 60
+        }
+      }
+
+      if (newTotalMinutes !== null) {
+        const mins = newTotalMinutes
         setTotalMinutes(mins)
-        if (!RUNTIME_OPTIONS.includes(mins)) {
+        // RUNTIME_OPTIONS에 없는 값(예: 1분 = 60초)이면 custom으로 처리
+        const roundedMins = Math.floor(mins)
+        const remainSecs = Math.round((mins - roundedMins) * 60)
+        if (!RUNTIME_OPTIONS.includes(Math.round(mins)) || remainSecs > 0) {
           setIsCustomRuntime(true)
-          setCustomMinutes(Math.floor(mins))
-          setCustomSeconds(Math.round((mins % 1) * 60))
+          setCustomMinutes(roundedMins)
+          setCustomSeconds(remainSecs)
         } else {
           setIsCustomRuntime(false)
           setCustomMinutes(0)
           setCustomSeconds(0)
         }
       }
+
       if (data.sections && Array.isArray(data.sections)) {
         const newSections = (data.sections as Array<{name: string; targetDuration: number; script?: string}>).map((s, i) => ({
           id: generateId(),
