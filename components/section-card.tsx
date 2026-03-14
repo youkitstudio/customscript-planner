@@ -3,12 +3,17 @@
 import { ChevronDown, ChevronUp, RotateCcw, History } from "lucide-react"
 import { useState } from "react"
 
-// 2분(120초) 기준 725자 = 초당 약 6.04자
+// 하위 호환용 상수
 export const CHARS_PER_SECOND = 725 / 120
 
-export function calculateDuration(text: string): number {
+// readingSpeed(자/분) 기반 duration 계산 — readingSpeed 미전달 시 기존 방식 fallback
+export function calculateDuration(text: string, readingSpeed?: number): number {
   if (!text) return 0
-  return Math.ceil(text.replace(/\s/g, "").length / CHARS_PER_SECOND)
+  const charCount = text.replace(/\s/g, "").length
+  if (readingSpeed && readingSpeed > 0) {
+    return Math.ceil(charCount / (readingSpeed / 60))
+  }
+  return Math.ceil(charCount / CHARS_PER_SECOND)
 }
 
 export function formatTime(seconds: number): string {
@@ -74,14 +79,18 @@ export default function SectionCard({
   }
 
 
-  const duration = calculateDuration(script)
-  const percent = isCompleted
-    ? 100
-    : targetDuration > 0
-      ? Math.round((duration / targetDuration) * 100)
-      : 0
+  // readingSpeed 기반으로 duration과 percent 계산
+  const duration = isCompleted
+    ? targetDuration
+    : calculateDuration(script, readingSpeed)
+
+  // 글자수 기반 퍼센트 (readingSpeed 일치 보장)
   const charCount = script.replace(/\s/g, "").length
   const targetChars = Math.round((targetDuration / 60) * readingSpeed)
+  const charPercent = targetChars > 0 ? Math.round((charCount / targetChars) * 100) : 0
+
+  // 표시용 퍼센트: 글자수 기반 (100% 초과 허용, 캡핑 없음)
+  const percent = isCompleted ? 100 : charPercent
 
   let statusColor = "text-krds-gray-30"
   let statusText = ""
@@ -91,11 +100,12 @@ export default function SectionCard({
     statusColor = "text-krds-success"
     statusText = "작성완료"
     barColor = "bg-krds-success"
-  } else if (percent > 105) {
+  } else if (percent > 110) {
+    // 110% 초과: 빨강 + 초과 글자수 표시
     statusColor = "text-krds-danger"
-    statusText = `${formatTime(duration - targetDuration)} 초과`
+    statusText = `${percent}% (${charCount - targetChars}자 초과)`
     barColor = "bg-krds-danger"
-  } else if (percent >= 95) {
+  } else if (percent >= 90) {
     statusColor = "text-krds-success"
     statusText = "적정"
     barColor = "bg-krds-success"
@@ -154,7 +164,12 @@ export default function SectionCard({
 
           <span className="whitespace-nowrap text-[13px] text-krds-gray-50">
             {formatTime(duration)} / {formatTime(targetDuration)} /{" "}
-            <span className={`font-bold ${statusColor}`}>{percent}%</span>
+            <span className={`font-bold ${
+              isCompleted ? "text-krds-success"
+              : percent > 110 ? "text-krds-danger"
+              : percent >= 90 ? "text-krds-success"
+              : "text-krds-gray-50"
+            }`}>{percent}%</span>
           </span>
 
           <button
@@ -171,11 +186,11 @@ export default function SectionCard({
         </div>
       </div>
 
-      {/* 프로그레스 바 */}
-      <div className="h-1 bg-krds-gray-10">
+      {/* 프로그레스 바 — 초과 시 빨강, 최대 110%까지 시각적으로 표현 */}
+      <div className="h-1 bg-krds-gray-10 overflow-hidden">
         <div
           className={`h-full transition-all duration-300 ${barColor}`}
-          style={{ width: `${Math.min(percent, 100)}%` }}
+          style={{ width: `${Math.min(percent, 110)}%` }}
         />
       </div>
 
@@ -206,10 +221,13 @@ export default function SectionCard({
             <span className="text-krds-gray-50">
               {charCount}자
               <span className="ml-1 text-krds-gray-30">/ 목표 {targetChars}자</span>
-              {charCount > 0 && charCount < targetChars * 0.85 && (
+              {charCount > 0 && percent < 85 && (
                 <span className="ml-2 text-amber-500">글자수 부족</span>
               )}
-              {charCount >= targetChars * 0.95 && charCount <= targetChars * 1.1 && (
+              {percent > 110 && (
+                <span className="ml-2 text-krds-danger">{charCount - targetChars}자 초과</span>
+              )}
+              {percent >= 90 && percent <= 110 && !isCompleted && (
                 <span className="ml-2 text-krds-success">✓ 적정</span>
               )}
             </span>
