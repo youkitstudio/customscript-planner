@@ -1,7 +1,7 @@
 "use client"
 
-import { ChevronDown, ChevronUp, RotateCcw, History } from "lucide-react"
-import { useState } from "react"
+import { ChevronDown, ChevronUp, RotateCcw, Sparkles, Loader2, History } from "lucide-react"
+import { useState, useRef } from "react"
 
 // 2분(120초) 기준 725자 = 초당 약 6.04자
 export const CHARS_PER_SECOND = 725 / 120
@@ -57,7 +57,10 @@ export default function SectionCard({
   onHistoryChange,
 }: SectionCardProps) {
   const [collapsed, setCollapsed] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [showHistory, setShowHistory] = useState(false)
+  const topicInputRef = useRef<HTMLInputElement>(null)
 
   const addToHistory = (content: string) => {
     if (!content || content.trim() === "" || !onHistoryChange) return
@@ -73,6 +76,49 @@ export default function SectionCard({
     setShowHistory(false)
   }
 
+  const handleGenerateNarration = async () => {
+    if (!topic || topic.trim() === "") {
+      setError("작성 내용 또는 수정 요청을 입력해주세요")
+      topicInputRef.current?.focus()
+      return
+    }
+
+    if (script && script.trim() !== "") {
+      addToHistory(script)
+    }
+
+    setIsGenerating(true)
+    setError(null)
+
+    try {
+      const targetChars = Math.round((targetDuration / 60) * readingSpeed)
+
+      const response = await fetch("/api/generate-narration", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          topic: topic,
+          contentType: contentType,
+          toneStyle: toneStyle,
+          targetChars: targetChars,
+          duration: targetDuration,
+          existingScript: script || "",
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "나레이션 생성에 실패했습니다.")
+      }
+
+      onScriptChange(data.narration)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "나레이션 생성 중 오류가 발생했습니다.")
+    } finally {
+      setIsGenerating(false)
+    }
+  }
 
   const duration = calculateDuration(script)
   const percent = isCompleted
@@ -183,7 +229,42 @@ export default function SectionCard({
       {!collapsed && (
         <div className="p-5">
           {/* ─── 나레이션 주제 + AI 버튼 가로 배치 ─── */}
-
+          <div className="mb-3">
+            <label className="mb-2 block text-[13px] font-medium text-krds-gray-70">
+              AI 원고 자동 작성 · 수정
+              <span className="ml-2 text-[11px] font-normal text-krds-gray-30">
+                {script ? "기존 원고를 수정하거나 새로운 내용을 요청하세요" : "작성하고 싶은 내용을 자유롭게 입력하세요"}
+              </span>
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                ref={topicInputRef}
+                type="text"
+                value={topic}
+                onChange={(e) => onTopicChange?.(e.target.value)}
+                placeholder={script ? "예) 신뢰감 있는 어조로 바꿔줘 · 좀 더 쉽게 설명해줘" : "예) 직업윤리의 중요성과 사례 중심으로 설명해줘"}
+                className="flex-1 rounded-lg border-[1.5px] border-krds-border px-4 py-2.5 text-[15px] outline-none transition-colors placeholder:text-krds-gray-30 focus:border-krds-primary"
+              />
+              <button
+                type="button"
+                onClick={handleGenerateNarration}
+                disabled={isGenerating}
+                className="flex shrink-0 items-center gap-1.5 rounded-lg bg-krds-primary px-3 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-krds-primary-dark focus:outline-2 focus:outline-offset-2 focus:outline-krds-primary disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span>생성 중...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span>AI 나레이션 생성</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
 
           <textarea
             value={script}
@@ -274,6 +355,11 @@ export default function SectionCard({
             </div>
           </div>
 
+          {error && (
+            <div className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-[13px] text-krds-danger">
+              {error}
+            </div>
+          )}
         </div>
       )}
     </div>
