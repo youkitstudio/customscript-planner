@@ -193,6 +193,8 @@ function ContentPlannerMain() {
   const [isChatGenerating, setIsChatGenerating] = useState(false)
   const [chatPanelWidth, setChatPanelWidth] = useState(300)
   const isResizing = useRef(false)
+  const [activeSectionDot, setActiveSectionDot] = useState(0)
+  const sectionRefs = useRef<(HTMLDivElement | null)[]>([])
   const [isCustomRuntime, setIsCustomRuntime] = useState(false)
   const [customMinutes, setCustomMinutes] = useState(0)
   const [customSeconds, setCustomSeconds] = useState(0)
@@ -567,70 +569,115 @@ function ContentPlannerMain() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F7F7F8", fontFamily: "Pretendard, Apple SD Gothic Neo, sans-serif" }}>
+    <div style={{ minHeight: "100vh", background: "#F7F7F8", fontFamily: "Pretendard, Apple SD Gothic Neo, sans-serif", display: "flex", flexDirection: "column" }}>
 
-      {/* ── Header ── */}
-      <header style={{ background: "#fff", borderBottom: "1px solid #E5E5E5", position: "sticky", top: 0, zIndex: 50 }}>
-        <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 20px", height: 52, display: "flex", alignItems: "center", gap: 10 }}>
+      {/* ── Header 1줄: 로고 + 스토리보드 버튼만 ── */}
+      <header style={{ background: "#fff", borderBottom: "1px solid #E5E5E5", position: "sticky", top: 0, zIndex: 50, flexShrink: 0 }}>
+        <div style={{ padding: "0 20px", height: 48, display: "flex", alignItems: "center", gap: 10 }}>
+          {/* 좌: 로고 + 앱명 */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
             <div style={{ width: 26, height: 26, borderRadius: 7, background: "#5B5BD6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#fff", fontWeight: 700 }}>Y</div>
             <span style={{ fontSize: 13, fontWeight: 700, color: "#1C1C1E", letterSpacing: "-0.03em" }}>AI 원고 어시스턴트</span>
           </div>
+          {/* 스토리보드 이동 버튼 */}
           <button
             type="button"
             onClick={() => window.open("https://storykit-eta.vercel.app", "_blank")}
             style={{ display: "flex", alignItems: "center", gap: 4, background: "#F0F0FF", color: "#5B5BD6", border: "1px solid #DDDDF5", borderRadius: 6, padding: "5px 11px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}
           >
-            <span>▶</span> 스토리보드 작성
-          </button>
-          <div style={{ flex: 1, display: "flex", gap: 8 }}>
-            <input type="text" value={projectName} onChange={(e) => setProjectName(e.target.value)} placeholder="프로젝트 명"
-              style={{ flex: 3, borderRadius: 7, border: "1px solid #E5E5E5", background: "#F7F7F8", padding: "6px 12px", fontSize: 13, outline: "none", color: "#1C1C1E", fontFamily: "inherit" }} />
-            <input type="text" value={author} onChange={(e) => setAuthor(e.target.value)} placeholder="작성자"
-              style={{ flex: 1, borderRadius: 7, border: "1px solid #E5E5E5", background: "#F7F7F8", padding: "6px 12px", fontSize: 13, outline: "none", color: "#1C1C1E", fontFamily: "inherit" }} />
-          </div>
-          <button type="button" onClick={handleOpenStoryKit}
-            style={{ display: "flex", alignItems: "center", gap: 5, background: "linear-gradient(135deg, #6C5CE7 0%, #a855f7 100%)", color: "#fff", border: "none", borderRadius: 7, padding: "6px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap" }}>
-            ✦ AI 스토리보드 자동생성
+            <span>▶</span> 스토리 보드 작성
           </button>
         </div>
       </header>
 
-      {/* ── 상단 진행 표시바 ── */}
-      <div style={{ background: "#fff", borderBottom: "1px solid #F0F0F0", position: "sticky", top: 52, zIndex: 45 }}>
-        <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 20px", height: 36, display: "flex", alignItems: "center", gap: 14 }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: "#5B5BD6", whiteSpace: "nowrap" }}>총 {sections.length}섹션</span>
-          <span style={{ fontSize: 12, color: "#6B6B6E", whiteSpace: "nowrap" }}>전체 러닝타임 <strong style={{ color: totalPercent > 105 ? "#DC2626" : totalPercent >= 95 ? "#1A7F45" : "#1C1C1E" }}>{totalPercent}%</strong></span>
-          <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 11, color: "#AEAEB2", whiteSpace: "nowrap" }}>{formatTime(totalActual)}</span>
-            <div style={{ flex: 1, height: 4, borderRadius: 99, background: "#F0F0F0", overflow: "hidden" }}>
+      {/* ── 서브헤더 2줄: 섹션수/런닝타임 + 타임라인 + 프로젝트명/작성자 + 액션버튼 ── */}
+      <div style={{ background: "#fff", borderBottom: "1px solid #E5E5E5", position: "sticky", top: 48, zIndex: 45, flexShrink: 0 }}>
+        <div style={{ padding: "0 20px", height: 44, display: "flex", alignItems: "center", gap: 12 }}>
+
+          {/* 총 섹션수 */}
+          <span style={{ fontSize: 12, fontWeight: 700, color: "#5B5BD6", whiteSpace: "nowrap", flexShrink: 0 }}>총 {sections.length}섹션</span>
+
+          {/* 전체 런닝타임 % */}
+          <span style={{ fontSize: 12, color: "#6B6B6E", whiteSpace: "nowrap", flexShrink: 0 }}>
+            전체 런닝타임 <strong style={{ color: totalPercent > 105 ? "#DC2626" : totalPercent >= 95 ? "#1A7F45" : "#1C1C1E" }}>{totalPercent}%</strong>
+          </span>
+
+          {/* 타임라인 바: 0:00 ──── 3:00 */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 0 }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: "#1C1C1E", whiteSpace: "nowrap", flexShrink: 0 }}>{formatTime(totalActual)}</span>
+            <div style={{ flex: 1, height: 4, borderRadius: 99, background: "#EBEBEB", overflow: "hidden", minWidth: 60 }}>
               <div style={{ height: "100%", borderRadius: 99, width: `${Math.min(totalPercent, 100)}%`, background: totalPercent > 105 ? "#DC2626" : totalPercent >= 95 ? "#1A7F45" : "#5B5BD6", transition: "width 0.3s" }} />
             </div>
-            <span style={{ fontSize: 11, color: "#AEAEB2", whiteSpace: "nowrap" }}>{formatTime(totalSeconds)}</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: "#1C1C1E", whiteSpace: "nowrap", flexShrink: 0 }}>{formatTime(totalSeconds)}</span>
           </div>
+
+          {/* 구분선 */}
+          <div style={{ width: 1, height: 20, background: "#E5E5E5", flexShrink: 0 }} />
+
+          {/* 프로젝트명 입력 */}
+          <input
+            type="text" value={projectName}
+            onChange={(e) => setProjectName(e.target.value)}
+            placeholder="프로젝트 명"
+            style={{ width: 200, borderRadius: 7, border: "1px solid #E5E5E5", background: "#F7F7F8", padding: "5px 10px", fontSize: 13, outline: "none", color: "#1C1C1E", fontFamily: "inherit", flexShrink: 0 }}
+          />
+
+          {/* 작성자 입력 */}
+          <input
+            type="text" value={author}
+            onChange={(e) => setAuthor(e.target.value)}
+            placeholder="작성자"
+            style={{ width: 100, borderRadius: 7, border: "1px solid #E5E5E5", background: "#F7F7F8", padding: "5px 10px", fontSize: 13, outline: "none", color: "#1C1C1E", fontFamily: "inherit", flexShrink: 0 }}
+          />
+
+          {/* AI 스토리보드 자동생성 버튼 */}
+          <button type="button" onClick={handleOpenStoryKit}
+            style={{ display: "flex", alignItems: "center", gap: 5, background: "linear-gradient(135deg, #6C5CE7 0%, #a855f7 100%)", color: "#fff", border: "none", borderRadius: 7, padding: "6px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap" }}>
+            ✦ AI 스토리보드 자동생성
+          </button>
+
+          {/* 작성 가이드 버튼 */}
+          <button type="button"
+            onClick={() => alert("작성 가이드\n\n1. 콘텐츠 유형, 러닝타임, 섹션 수를 설정하세요\n2. 말투 스타일과 낭독 속도를 선택하세요\n3. 각 섹션명과 원고를 입력하세요\n4. AI 어시스턴트를 활용해 원고를 자동 생성할 수 있습니다\n5. 완성 후 스토리보드 자동 생성을 클릭하세요")}
+            style={{ display: "flex", alignItems: "center", gap: 5, background: "#F5F5F5", color: "#3A3A3C", border: "1px solid #E5E5E5", borderRadius: 7, padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap" }}>
+            작성 가이드
+          </button>
         </div>
       </div>
 
-      <main style={{ maxWidth: 1400, margin: "0 auto", padding: "16px 20px" }}>
-        <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+      {/* ── 메인 바디: 좌측 패널 fixed + 우측 편집영역 ── */}
+      <div style={{ display: "flex", flex: 1, overflow: "hidden", position: "relative" }}>
 
-          {/* ── 좌측: AI 채팅 패널 ── */}
-          <div style={{ width: chatPanelWidth, flexShrink: 0, position: "sticky", top: 90, height: "calc(100vh - 110px)", display: "flex" }}>
+        {/* ── 좌측: AI 채팅 패널 (화면 왼쪽에 완전히 붙음) ── */}
+        <div style={{
+          width: chatPanelWidth,
+          flexShrink: 0,
+          position: "sticky",
+          top: 92,
+          height: "calc(100vh - 92px - 52px)", /* 헤더 92px + 하단바 52px */
+          display: "flex",
+          borderRight: "1px solid #E5E5E5",
+          background: "#fff",
+          overflow: "hidden",
+        }}>
+          <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
             <ChatPanel
               currentState={{ projectName, contentType, totalMinutes, sectionCount, toneStyle, readingSpeed, sections: sections.map(s => ({ name: s.name, targetDuration: s.targetDuration, script: s.script })) }}
               onAction={handleChatAction}
               isGenerating={isChatGenerating}
               setIsGenerating={setIsChatGenerating}
             />
-            <div onMouseDown={startResize}
-              style={{ width: 4, cursor: "col-resize", flexShrink: 0, background: "transparent", transition: "background 0.15s" }}
-              onMouseEnter={e => (e.currentTarget.style.background = "#5B5BD6")}
-              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-            />
           </div>
+          {/* 드래그 리사이즈 핸들 */}
+          <div onMouseDown={startResize}
+            style={{ width: 4, cursor: "col-resize", flexShrink: 0, background: "transparent", transition: "background 0.15s", zIndex: 10 }}
+            onMouseEnter={e => (e.currentTarget.style.background = "#5B5BD6")}
+            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+          />
+        </div>
 
           {/* ── 우측: 편집 영역 ── */}
-          <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ flex: 1, minWidth: 0, overflowY: "auto", height: "calc(100vh - 92px - 52px)", padding: "16px 20px" }}>
         <div style={{ ...card, padding: "24px", marginBottom: 16 }}>
 
           {/* 상단 3열: 콘텐츠 유형 / 러닝타임 / 섹션 수 */}
@@ -757,24 +804,14 @@ function ContentPlannerMain() {
         </div>
 
 
-        <div style={{ ...card, padding: "20px 24px", marginBottom: 16 }}>
-          <Timeline
-            sections={sections.map((s) => ({ id: s.id, name: s.name, targetDuration: s.targetDuration, color: s.color }))}
-            totalSeconds={totalSeconds}
-            onDurationChange={handleDurationChange}
-            onDirectDurationEdit={handleDirectDurationEdit}
-            onResetDistribution={handleResetDistribution}
-          />
-        </div>
-
-
-        <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 16 }}>
+        {/* 프로젝트 불러오기/저장 버튼 - 우측 상단 */}
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginBottom: 16 }}>
           <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isLoadingFile}
             style={{
               display: "flex", alignItems: "center", gap: 6,
               border: "1px solid #5B5BD6", background: "transparent",
               color: "#5B5BD6", borderRadius: 8,
-              padding: "9px 18px", fontSize: 13, fontWeight: 600,
+              padding: "8px 16px", fontSize: 13, fontWeight: 600,
               cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em",
               opacity: isLoadingFile ? 0.5 : 1,
             }}>
@@ -788,51 +825,27 @@ function ContentPlannerMain() {
               display: "flex", alignItems: "center", gap: 6,
               background: "#F5F5F5", color: "#3A3A3C",
               border: "1px solid #E5E5E5", borderRadius: 8,
-              padding: "9px 18px", fontSize: 13, fontWeight: 600,
+              padding: "8px 16px", fontSize: 13, fontWeight: 600,
               cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em",
             }}>
             <Save style={{ width: 14, height: 14 }} />프로젝트 저장
           </button>
         </div>
 
-        <div style={{
-          ...card, padding: "14px 24px", marginBottom: 24,
-          position: "sticky", top: 60, zIndex: 40,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
-        }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-              <p style={{ fontSize: 11, color: "#6B6B6E", letterSpacing: "-0.01em" }}>전체 러닝타임</p>
-              <p style={{ fontSize: 20, fontWeight: 700, color: "#1C1C1E", letterSpacing: "-0.04em", lineHeight: 1 }}>
-                {formatTime(totalActual)}
-                <span style={{ fontSize: 14, fontWeight: 400, color: "#AEAEB2", marginLeft: 4 }}>/ {formatTime(totalSeconds)}</span>
-              </p>
-            </div>
-            <p style={{
-              fontSize: 22, fontWeight: 700, letterSpacing: "-0.04em",
-              color: totalPercent > 105 ? "#DC2626" : totalPercent >= 95 ? "#1A7F45" : "#AEAEB2",
-            }}>{totalPercent}%</p>
-          </div>
-          <div style={{ height: 6, borderRadius: 99, background: "#F5F5F5", overflow: "hidden" }}>
-            <div style={{
-              height: "100%",
-              borderRadius: 99,
-              width: `${Math.min(totalPercent, 100)}%`,
-              background: totalPercent > 105 ? "#DC2626" : totalPercent >= 95 ? "#1A7F45" : "#5B5BD6",
-              transition: "width 0.3s ease",
-            }} />
-          </div>
-          {totalPercent > 105 && (
-            <p style={{ marginTop: 8, fontSize: 13, color: "#DC2626", fontWeight: 500 }}>
-              {formatTime(totalActual - totalSeconds)} 초과
-            </p>
-          )}
+        <div style={{ ...card, padding: "20px 24px", marginBottom: 16 }}>
+          <Timeline
+            sections={sections.map((s) => ({ id: s.id, name: s.name, targetDuration: s.targetDuration, color: s.color }))}
+            totalSeconds={totalSeconds}
+            onDurationChange={handleDurationChange}
+            onDirectDurationEdit={handleDirectDurationEdit}
+            onResetDistribution={handleResetDistribution}
+          />
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {sections.map((section, index) => (
+            <div key={section.id} ref={el => { sectionRefs.current[index] = el }}>
             <SectionCard
-              key={section.id}
               index={index}
               name={section.name}
               targetDuration={section.targetDuration}
@@ -851,78 +864,77 @@ function ContentPlannerMain() {
               onTopicChange={(topic) => handleTopicChange(index, topic)}
               onHistoryChange={(history) => handleHistoryChange(index, history)}
             />
+            </div>
           ))}
         </div>
 
-        <div style={{ marginTop: 40, display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
-          <div style={{ display: "flex", gap: 10 }}>
-            <button type="button" onClick={downloadText}
+        {/* ── 우측 dot 섹션 네비게이션 ── */}
+        <div style={{
+          position: "fixed", right: 16, top: "50%", transform: "translateY(-50%)",
+          display: "flex", flexDirection: "column", gap: 8, zIndex: 100,
+        }}>
+          {sections.map((_, index) => (
+            <button
+              key={index}
+              type="button"
+              title={`섹션 ${index + 1}로 이동`}
+              onClick={() => {
+                setActiveSectionDot(index)
+                sectionRefs.current[index]?.scrollIntoView({ behavior: "smooth", block: "start" })
+              }}
               style={{
-                display: "flex", alignItems: "center", gap: 6,
-                background: "#F5F5F5", color: "#3A3A3C",
-                border: "1px solid #E5E5E5", borderRadius: 9,
-                padding: "11px 20px", fontSize: 14, fontWeight: 600,
-                cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em",
-              }}>
-              <FileText style={{ width: 15, height: 15 }} />텍스트 다운로드
-            </button>
-            <button type="button" onClick={downloadPDF}
-              style={{
-                display: "flex", alignItems: "center", gap: 6,
-                background: "#5B5BD6", color: "#fff",
-                border: "none", borderRadius: 9,
-                padding: "11px 24px", fontSize: 14, fontWeight: 600,
-                cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em",
-              }}>
-              <Download style={{ width: 15, height: 15 }} />PDF 인쇄/저장
-            </button>
-          </div>
-
-          {/* ── 스토리보드 자동 생성 버튼 ── */}
-          <div style={{ width: "100%", maxWidth: 520, marginTop: 8 }}>
-            <button type="button" onClick={() => {
-              // 1. TXT 자동 다운로드
-              const toneLabel = TONE_STYLES.find(t => t.value === toneStyle)?.label || toneStyle
-              const speedInfo = READING_SPEEDS.find(s => s.value === readingSpeed)
-              const speedLabel = speedInfo ? `${speedInfo.label} (1분 = ${speedInfo.value}자)` : `${readingSpeed}자/분`
-              const textContent = `${projectName || "제목없음"}\n${"=".repeat(50)}\n\n작성자: ${author || "-"}\n콘텐츠 유형: ${contentType}\n전체 러닝타임: ${totalMinutes}분\n섹션 수: ${sections.length}개\n말투 스타일: ${toneLabel}\n낭독 속도: ${speedLabel}\n전체 목표 글자수: ${totalTargetChars.toLocaleString()}자\n\n${"=".repeat(50)}\n\n${sections.map((section, idx) => `\n[#${idx + 1}] ${section.name}\n${"-".repeat(40)}\n목표 시간: ${formatTime(section.targetDuration)}\n작성 시간: ${formatTime(calculateDuration(section.script))}\n작성완료: ${section.isCompleted ? "예" : "아니오"}\n\n${section.script || "(작성된 내용 없음)"}\n`).join("\n")}\n\n${"=".repeat(50)}\n콘텐츠 원고 작성 도구 - youkit`
-
-              const blob = new Blob([textContent], { type: "text/plain;charset=utf-8" })
-              const url = URL.createObjectURL(blob)
-              const a = document.createElement("a")
-              a.href = url
-              a.download = `${projectName || "원고"}_storykit.txt`
-              a.click()
-              URL.revokeObjectURL(url)
-
-              // 2. 1초 후 StoryKit 새 탭으로 열기
-              setTimeout(() => {
-                window.open("https://storykit-eta.vercel.app", "_blank")
-              }, 800)
-            }}
-              style={{
-                width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                background: "linear-gradient(135deg, #6C5CE7 0%, #a855f7 100%)",
-                color: "#fff", border: "none", borderRadius: 10,
-                padding: "15px 24px", fontSize: 15, fontWeight: 700,
-                cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em",
-                boxShadow: "0 4px 14px rgba(108,92,231,0.35)",
-              }}>
-              ✦ 스토리보드 자동 생성 →
-            </button>
-            <p style={{ fontSize: 11, color: "#AEAEB2", textAlign: "center", marginTop: 6, letterSpacing: "-0.01em" }}>
-              TXT 파일이 자동 저장됩니다 · StoryKit에서 파일을 업로드하세요
-            </p>
-          </div>
-
-          <p style={{ fontSize: 12, color: "#AEAEB2", letterSpacing: "-0.01em" }}>
-            다운로드 버튼 클릭 후 약 3초 정도 후에 다운로드가 진행됩니다.
-          </p>
+                width: activeSectionDot === index ? 10 : 8,
+                height: activeSectionDot === index ? 10 : 8,
+                borderRadius: "50%",
+                background: activeSectionDot === index ? "#5B5BD6" : "#D1D1D6",
+                border: "none",
+                cursor: "pointer",
+                padding: 0,
+                transition: "all 0.2s",
+              }}
+            />
+          ))}
         </div>
 
-          </div>
-        </div>
-      </main>
+        {/* 섹션 아래 여백 */}
+        <div style={{ height: 40 }} />
+
+          </div>{/* 우측 편집영역 끝 */}
+        </div>{/* 메인 바디 flex 끝 */}
+
+      {/* ── 하단 Sticky 바: 텍스트 다운로드 + PDF 인쇄/저장 ── */}
+      <div style={{
+        position: "sticky", bottom: 0, zIndex: 50,
+        background: "#fff", borderTop: "1px solid #E5E5E5",
+        padding: "10px 24px",
+        display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 10,
+        boxShadow: "0 -2px 8px rgba(0,0,0,0.06)",
+        flexShrink: 0,
+      }}>
+        <p style={{ fontSize: 11, color: "#AEAEB2", letterSpacing: "-0.01em", marginRight: "auto" }}>
+          TXT 파일이 자동 저장됩니다 · StoryKit에서 파일을 업로드하세요
+        </p>
+        <button type="button" onClick={downloadText}
+          style={{
+            display: "flex", alignItems: "center", gap: 6,
+            background: "#F5F5F5", color: "#3A3A3C",
+            border: "1px solid #E5E5E5", borderRadius: 8,
+            padding: "9px 18px", fontSize: 13, fontWeight: 600,
+            cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em",
+          }}>
+          <FileText style={{ width: 14, height: 14 }} />텍스트 다운로드
+        </button>
+        <button type="button" onClick={downloadPDF}
+          style={{
+            display: "flex", alignItems: "center", gap: 6,
+            background: "#5B5BD6", color: "#fff",
+            border: "none", borderRadius: 8,
+            padding: "9px 20px", fontSize: 13, fontWeight: 600,
+            cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em",
+          }}>
+          <Download style={{ width: 14, height: 14 }} />PDF 인쇄/저장
+        </button>
+      </div>
 
       <div style={{ position: "fixed", left: -9999, top: 0 }}>
         <div ref={printRef} style={{ width: 800, background: "#fff", padding: 40, fontFamily: "Noto Sans KR, system-ui, sans-serif" }}>
