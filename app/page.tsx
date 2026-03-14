@@ -963,15 +963,6 @@ function ContentPlannerMain() {
 export default function ContentPlanner() {
   const [unlocked, setUnlocked] = useState(false)
   if (!unlocked) return <PasswordGate onUnlock={() => setUnlocked(true)} />
-
-    </div>
-  )
-}
-
-
-// ── 최종 export ───────────────────────────
-export default function ContentPlanner() {
-  const [unlocked, setUnlocked] = useState(false)
-  if (!unlocked) return <PasswordGate onUnlock={() => setUnlocked(true)} />
   return <ContentPlannerMain />
 }
+
