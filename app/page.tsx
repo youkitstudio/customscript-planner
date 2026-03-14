@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useCallback } from "react"
+import { useState, useRef, useCallback, useEffect } from "react"
 import { Download, Upload, Save, FileText } from "lucide-react"
 import Timeline, { getSectionColor } from "@/components/timeline"
 import SectionCard, {
@@ -30,7 +30,7 @@ const CONTENT_TYPES = [
   "유튜브 영상 대본", "팟캐스트 스크립트", "다큐멘터리 원고", "기타",
 ]
 
-const RUNTIME_OPTIONS = [5, 10, 15, 20, 25, 30, 40, 60]
+const RUNTIME_OPTIONS = [3, 5, 10, 15, 20, 25, 30, 40, 60]
 
 const TONE_STYLES = [
   { value: "friendly", label: "친근하고 쉽게" },
@@ -186,11 +186,13 @@ function ContentPlannerMain() {
   const [projectName, setProjectName] = useState("")
   const [author, setAuthor] = useState("")
   const [contentType, setContentType] = useState("강의 영상 스크립트")
-  const [totalMinutes, setTotalMinutes] = useState(25)
-  const [sectionCount, setSectionCount] = useState(7)
+  const [totalMinutes, setTotalMinutes] = useState(3)
+  const [sectionCount, setSectionCount] = useState(3)
   const [sections, setSections] = useState<SectionData[]>(() => createSections(7, 25 * 60))
   const [isLoadingFile, setIsLoadingFile] = useState(false)
   const [isChatGenerating, setIsChatGenerating] = useState(false)
+  const [chatPanelWidth, setChatPanelWidth] = useState(300)
+  const isResizing = useRef(false)
   const [isCustomRuntime, setIsCustomRuntime] = useState(false)
   const [customMinutes, setCustomMinutes] = useState(0)
   const [customSeconds, setCustomSeconds] = useState(0)
@@ -426,6 +428,28 @@ function ContentPlannerMain() {
   }
 
 
+
+  // ── 채팅 패널 드래그 리사이즈 ──────────────
+  const startResize = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    isResizing.current = true
+    const startX = e.clientX
+    const startWidth = chatPanelWidth
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isResizing.current) return
+      const newWidth = Math.min(500, Math.max(220, startWidth + (e.clientX - startX)))
+      setChatPanelWidth(newWidth)
+    }
+    const onMouseUp = () => {
+      isResizing.current = false
+      document.removeEventListener("mousemove", onMouseMove)
+      document.removeEventListener("mouseup", onMouseUp)
+    }
+    document.addEventListener("mousemove", onMouseMove)
+    document.addEventListener("mouseup", onMouseUp)
+  }, [chatPanelWidth])
+
   // ── AI 채팅 액션 핸들러 ──────────────────
   const handleChatAction = useCallback((action: string, data: Record<string, unknown>) => {
     if (action === "update_settings" || action === "generate_all" || action === "update_sections") {
@@ -524,20 +548,24 @@ function ContentPlannerMain() {
               콘텐츠 원고 작성 도구
             </span>
           </div>
-          {/* 작성가이드 버튼 */}
-          <a href="/guide" target="_blank" rel="noopener noreferrer"
+          {/* AI 스토리보드 자동 생성 버튼 */}
+          <button
+            type="button"
+            onClick={handleOpenStoryKit}
             style={{
-              background: "#5B5BD6",
+              background: "linear-gradient(135deg, #6C5CE7 0%, #a855f7 100%)",
               color: "#fff",
+              border: "none",
               borderRadius: 8,
               padding: "7px 16px",
               fontSize: 13,
               fontWeight: 600,
-              textDecoration: "none",
+              cursor: "pointer",
               letterSpacing: "-0.01em",
+              fontFamily: "inherit",
             }}>
-            작성가이드
-          </a>
+            ✦ AI 스토리보드 자동 생성
+          </button>
         </div>
       </header>
 
@@ -545,7 +573,7 @@ function ContentPlannerMain() {
         <div style={{ display: "flex", gap: 18, alignItems: "flex-start" }}>
 
           {/* ── 좌측: AI 채팅 패널 ── */}
-          <div style={{ width: 300, flexShrink: 0, position: "sticky", top: 76, height: "calc(100vh - 96px)" }}>
+          <div style={{ width: chatPanelWidth, flexShrink: 0, position: "sticky", top: 76, height: "calc(100vh - 96px)", display: "flex" }}>
             <ChatPanel
               currentState={{
                 projectName,
@@ -559,6 +587,17 @@ function ContentPlannerMain() {
               onAction={handleChatAction}
               isGenerating={isChatGenerating}
               setIsGenerating={setIsChatGenerating}
+            />
+            {/* 드래그 핸들 */}
+            <div
+              onMouseDown={startResize}
+              style={{
+                width: 4, cursor: "col-resize", flexShrink: 0,
+                background: "transparent", transition: "background 0.15s",
+                marginLeft: "auto",
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = "#5B5BD6")}
+              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
             />
           </div>
 
