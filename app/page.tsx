@@ -884,10 +884,10 @@ function ContentPlannerMain() {
             다운로드 버튼 클릭 후 약 3초 정도 후에 다운로드가 진행됩니다.
           </p>
         </div>
-          </div>{/* end 우측 편집 영역 inner2 */}
-          </div>{/* end 우측 편집 영역 inner */}
-          </div>{/* end 우측 편집 영역 */}
-        </div>{/* end 2컬럼 flex */}
+          </div>
+          </div>
+          </div>
+        </div>
       </main>
 
       {/* ── Footer ── */}
