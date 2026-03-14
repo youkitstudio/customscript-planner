@@ -569,371 +569,466 @@ function ContentPlannerMain() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F7F7F8", fontFamily: "Pretendard, Apple SD Gothic Neo, sans-serif", display: "flex", flexDirection: "column" }}>
+    // ① 최상위: 100vh, 세로 flex, overflow hidden → 브라우저 스크롤 1개만 발생
+    <div style={{
+      height: "100vh", overflow: "hidden",
+      background: "#F7F7F8",
+      fontFamily: "Pretendard, Apple SD Gothic Neo, sans-serif",
+      display: "flex", flexDirection: "column",
+    }}>
 
-      {/* ── Header 1줄: 로고 + 스토리보드 버튼만 ── */}
-      <header style={{ background: "#fff", borderBottom: "1px solid #E5E5E5", position: "sticky", top: 0, zIndex: 50, flexShrink: 0 }}>
-        <div style={{ padding: "0 20px", height: 48, display: "flex", alignItems: "center", gap: 10 }}>
-          {/* 좌: 로고 + 앱명 */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-            <div style={{ width: 26, height: 26, borderRadius: 7, background: "#5B5BD6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#fff", fontWeight: 700 }}>Y</div>
-            <span style={{ fontSize: 13, fontWeight: 700, color: "#1C1C1E", letterSpacing: "-0.03em" }}>AI 원고 어시스턴트</span>
-          </div>
-          {/* 스토리보드 이동 버튼 */}
-          <button
-            type="button"
-            onClick={() => window.open("https://storykit-eta.vercel.app", "_blank")}
-            style={{ display: "flex", alignItems: "center", gap: 4, background: "#F0F0FF", color: "#5B5BD6", border: "1px solid #DDDDF5", borderRadius: 6, padding: "5px 11px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}
-          >
-            <span>▶</span> 스토리 보드 작성
-          </button>
+      {/* ══════════════════════════════════════════
+          HEADER (48px) – 로고 + AI패널 아이콘 동일 스타일 + 스토리보드 버튼
+      ══════════════════════════════════════════ */}
+      <header style={{
+        background: "#fff", borderBottom: "1px solid #E5E5E5",
+        height: 48, flexShrink: 0,
+        display: "flex", alignItems: "center", padding: "0 16px", gap: 10,
+        zIndex: 50,
+      }}>
+        {/* ② 헤더 아이콘 = AI패널과 동일한 보라 원형 불릿 스타일 */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+          <div style={{
+            width: 28, height: 28, borderRadius: "50%",
+            background: "linear-gradient(135deg, #6C5CE7 0%, #a855f7 100%)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 13, color: "#fff", fontWeight: 700, flexShrink: 0,
+          }}>✦</div>
+          <span style={{ fontSize: 14, fontWeight: 700, color: "#1C1C1E", letterSpacing: "-0.03em" }}>
+            AI 원고 어시스턴트
+          </span>
         </div>
+
+        {/* ① 스토리보드 버튼 – 이미지 비율: 헤더 높이 대비 중간 크기, 보라 배경 없이 outline */}
+        <button
+          type="button"
+          onClick={() => window.open("https://storykit-eta.vercel.app", "_blank")}
+          style={{
+            display: "flex", alignItems: "center", gap: 5,
+            background: "#F0F0FF", color: "#5B5BD6",
+            border: "1px solid #DDDDF5", borderRadius: 7,
+            padding: "6px 14px", fontSize: 13, fontWeight: 700,
+            cursor: "pointer", fontFamily: "inherit", flexShrink: 0,
+            letterSpacing: "-0.02em",
+          }}
+        >
+          ▶ 스토리 보드 작성
+        </button>
       </header>
 
-      {/* ── 서브헤더 2줄: 섹션수/런닝타임 + 타임라인 + 프로젝트명/작성자 + 액션버튼 ── */}
-      <div style={{ background: "#fff", borderBottom: "1px solid #E5E5E5", position: "sticky", top: 48, zIndex: 45, flexShrink: 0 }}>
-        <div style={{ padding: "0 20px", height: 44, display: "flex", alignItems: "center", gap: 12 }}>
+      {/* ══════════════════════════════════════════
+          SUB-HEADER (40px) – 섹션수 | 런닝타임% | 진행바(flex 확장) | 프로젝트명(넓게) | 작성자 | 버튼들
+          1920px 기준: 총섹션~런닝타임 고정, 진행바 flex-grow, 프로젝트명 340px, 작성자 140px
+      ══════════════════════════════════════════ */}
+      <div style={{
+        background: "#fff", borderBottom: "1px solid #E5E5E5",
+        height: 40, flexShrink: 0,
+        display: "flex", alignItems: "center",
+        padding: "0 16px", gap: 10, zIndex: 45,
+      }}>
+        {/* 총 N섹션 */}
+        <span style={{ fontSize: 12, fontWeight: 700, color: "#1C1C1E", whiteSpace: "nowrap", flexShrink: 0 }}>
+          총 {sections.length}섹션
+        </span>
 
-          {/* 총 섹션수 */}
-          <span style={{ fontSize: 12, fontWeight: 700, color: "#5B5BD6", whiteSpace: "nowrap", flexShrink: 0 }}>총 {sections.length}섹션</span>
+        {/* 전체 런닝타임 % */}
+        <span style={{ fontSize: 12, color: "#6B6B6E", whiteSpace: "nowrap", flexShrink: 0 }}>
+          전체 런닝타임{" "}
+          <strong style={{ color: totalPercent > 105 ? "#DC2626" : totalPercent >= 95 ? "#1A7F45" : "#1C1C1E" }}>
+            {totalPercent}%
+          </strong>
+        </span>
 
-          {/* 전체 런닝타임 % */}
-          <span style={{ fontSize: 12, color: "#6B6B6E", whiteSpace: "nowrap", flexShrink: 0 }}>
-            전체 런닝타임 <strong style={{ color: totalPercent > 105 ? "#DC2626" : totalPercent >= 95 ? "#1A7F45" : "#1C1C1E" }}>{totalPercent}%</strong>
+        {/* 진행 바: 0:00 ━━━━━━ 3:00 — flex 1로 최대한 확장 */}
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 120 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#1C1C1E", whiteSpace: "nowrap", flexShrink: 0 }}>
+            {formatTime(totalActual)}
           </span>
-
-          {/* 타임라인 바: 0:00 ──── 3:00 */}
-          <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 0 }}>
-            <span style={{ fontSize: 11, fontWeight: 600, color: "#1C1C1E", whiteSpace: "nowrap", flexShrink: 0 }}>{formatTime(totalActual)}</span>
-            <div style={{ flex: 1, height: 4, borderRadius: 99, background: "#EBEBEB", overflow: "hidden", minWidth: 60 }}>
-              <div style={{ height: "100%", borderRadius: 99, width: `${Math.min(totalPercent, 100)}%`, background: totalPercent > 105 ? "#DC2626" : totalPercent >= 95 ? "#1A7F45" : "#5B5BD6", transition: "width 0.3s" }} />
-            </div>
-            <span style={{ fontSize: 11, fontWeight: 600, color: "#1C1C1E", whiteSpace: "nowrap", flexShrink: 0 }}>{formatTime(totalSeconds)}</span>
+          <div style={{ flex: 1, height: 4, borderRadius: 99, background: "#EBEBEB", overflow: "hidden" }}>
+            <div style={{
+              height: "100%", borderRadius: 99,
+              width: `${Math.min(totalPercent, 100)}%`,
+              background: totalPercent > 105 ? "#DC2626" : totalPercent >= 95 ? "#1A7F45" : "#5B5BD6",
+              transition: "width 0.3s",
+            }} />
           </div>
-
-          {/* 구분선 */}
-          <div style={{ width: 1, height: 20, background: "#E5E5E5", flexShrink: 0 }} />
-
-          {/* 프로젝트명 입력 */}
-          <input
-            type="text" value={projectName}
-            onChange={(e) => setProjectName(e.target.value)}
-            placeholder="프로젝트 명"
-            style={{ width: 200, borderRadius: 7, border: "1px solid #E5E5E5", background: "#F7F7F8", padding: "5px 10px", fontSize: 13, outline: "none", color: "#1C1C1E", fontFamily: "inherit", flexShrink: 0 }}
-          />
-
-          {/* 작성자 입력 */}
-          <input
-            type="text" value={author}
-            onChange={(e) => setAuthor(e.target.value)}
-            placeholder="작성자"
-            style={{ width: 100, borderRadius: 7, border: "1px solid #E5E5E5", background: "#F7F7F8", padding: "5px 10px", fontSize: 13, outline: "none", color: "#1C1C1E", fontFamily: "inherit", flexShrink: 0 }}
-          />
-
-          {/* AI 스토리보드 자동생성 버튼 */}
-          <button type="button" onClick={handleOpenStoryKit}
-            style={{ display: "flex", alignItems: "center", gap: 5, background: "linear-gradient(135deg, #6C5CE7 0%, #a855f7 100%)", color: "#fff", border: "none", borderRadius: 7, padding: "6px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap" }}>
-            ✦ AI 스토리보드 자동생성
-          </button>
-
-          {/* 작성 가이드 버튼 */}
-          <button type="button"
-            onClick={() => alert("작성 가이드\n\n1. 콘텐츠 유형, 러닝타임, 섹션 수를 설정하세요\n2. 말투 스타일과 낭독 속도를 선택하세요\n3. 각 섹션명과 원고를 입력하세요\n4. AI 어시스턴트를 활용해 원고를 자동 생성할 수 있습니다\n5. 완성 후 스토리보드 자동 생성을 클릭하세요")}
-            style={{ display: "flex", alignItems: "center", gap: 5, background: "#F5F5F5", color: "#3A3A3C", border: "1px solid #E5E5E5", borderRadius: 7, padding: "6px 14px", fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap" }}>
-            작성 가이드
-          </button>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#1C1C1E", whiteSpace: "nowrap", flexShrink: 0 }}>
+            {formatTime(totalSeconds)}
+          </span>
         </div>
+
+        {/* ③ 프로젝트명: 1920 기준 약 340px */}
+        <input
+          type="text" value={projectName}
+          onChange={(e) => setProjectName(e.target.value)}
+          placeholder="프로젝트 명"
+          style={{
+            width: 340, flexShrink: 1, minWidth: 120,
+            borderRadius: 7, border: "1px solid #E5E5E5",
+            background: "#F7F7F8", padding: "5px 10px",
+            fontSize: 13, outline: "none", color: "#1C1C1E", fontFamily: "inherit",
+          }}
+        />
+
+        {/* 작성자: 약 140px */}
+        <input
+          type="text" value={author}
+          onChange={(e) => setAuthor(e.target.value)}
+          placeholder="작성자"
+          style={{
+            width: 140, flexShrink: 1, minWidth: 80,
+            borderRadius: 7, border: "1px solid #E5E5E5",
+            background: "#F7F7F8", padding: "5px 10px",
+            fontSize: 13, outline: "none", color: "#1C1C1E", fontFamily: "inherit",
+          }}
+        />
+
+        {/* AI 스토리보드 자동생성 */}
+        <button type="button" onClick={handleOpenStoryKit}
+          style={{
+            display: "flex", alignItems: "center", gap: 5,
+            background: "linear-gradient(135deg, #6C5CE7 0%, #a855f7 100%)",
+            color: "#fff", border: "none", borderRadius: 7,
+            padding: "6px 16px", fontSize: 12, fontWeight: 700,
+            cursor: "pointer", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap",
+          }}>
+          ✦ AI 스토리보드 자동생성
+        </button>
+
+        {/* 작성 가이드 */}
+        <button type="button"
+          onClick={() => alert("작성 가이드\n\n1. 콘텐츠 유형, 러닝타임, 섹션 수를 설정하세요\n2. 말투 스타일과 낭독 속도를 선택하세요\n3. 각 섹션명과 원고를 입력하세요\n4. AI 어시스턴트를 활용해 원고를 자동 생성할 수 있습니다\n5. 완성 후 스토리보드 자동 생성을 클릭하세요")}
+          style={{
+            display: "flex", alignItems: "center", gap: 5,
+            background: "#F5F5F5", color: "#3A3A3C",
+            border: "1px solid #E5E5E5", borderRadius: 7,
+            padding: "6px 14px", fontSize: 12, fontWeight: 600,
+            cursor: "pointer", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap",
+          }}>
+          작성 가이드
+        </button>
       </div>
 
-      {/* ── 메인 바디: 좌측 패널 fixed + 우측 편집영역 ── */}
-      <div style={{ display: "flex", flex: 1, overflow: "hidden", position: "relative" }}>
+      {/* ══════════════════════════════════════════
+          BODY: flex row, height = 100vh - 48(header) - 40(subheader) - 44(bottombar)
+          → overflow hidden → 내부에서만 스크롤
+      ══════════════════════════════════════════ */}
+      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
 
-        {/* ── 좌측: AI 채팅 패널 (화면 왼쪽에 완전히 붙음) ── */}
+        {/* ④⑤ 좌측 AI 패널 – 화면 좌측 끝에 밀착, 내부 라운드박스 제거용 wrapper */}
         <div style={{
-          width: chatPanelWidth,
-          flexShrink: 0,
-          position: "sticky",
-          top: 92,
-          height: "calc(100vh - 92px - 52px)", /* 헤더 92px + 하단바 52px */
-          display: "flex",
+          width: chatPanelWidth, flexShrink: 0,
+          display: "flex", flexDirection: "column",
           borderRight: "1px solid #E5E5E5",
           background: "#fff",
           overflow: "hidden",
+          position: "relative",
         }}>
+          {/* ④ 패널 상단 타이틀 – 아이콘 없이 불릿 + 텍스트만 */}
+          <div style={{
+            padding: "12px 16px 0 16px",
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            flexShrink: 0,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{
+                width: 8, height: 8, borderRadius: "50%",
+                background: "linear-gradient(135deg, #6C5CE7, #a855f7)",
+                display: "inline-block", flexShrink: 0,
+              }} />
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#1C1C1E", letterSpacing: "-0.02em" }}>
+                AI 원고요청
+              </span>
+            </div>
+            {/* 패널 접기 버튼(선택) */}
+            <button type="button" onClick={() => setChatPanelWidth((w: number) => w > 60 ? 300 : 40)}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "#AEAEB2", fontSize: 14, padding: 0 }}>
+              ‹
+            </button>
+          </div>
+
+          {/* ChatPanel – ⑤ 내부 라운드박스 제거: ChatPanel 컴포넌트에 borderRadius:0 override */}
           <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
             <ChatPanel
-              currentState={{ projectName, contentType, totalMinutes, sectionCount, toneStyle, readingSpeed, sections: sections.map(s => ({ name: s.name, targetDuration: s.targetDuration, script: s.script })) }}
+              currentState={{
+                projectName, contentType, totalMinutes, sectionCount,
+                toneStyle, readingSpeed,
+                sections: sections.map(s => ({ name: s.name, targetDuration: s.targetDuration, script: s.script })),
+              }}
               onAction={handleChatAction}
               isGenerating={isChatGenerating}
               setIsGenerating={setIsChatGenerating}
             />
           </div>
+
           {/* 드래그 리사이즈 핸들 */}
-          <div onMouseDown={startResize}
-            style={{ width: 4, cursor: "col-resize", flexShrink: 0, background: "transparent", transition: "background 0.15s", zIndex: 10 }}
+          <div
+            onMouseDown={startResize}
+            style={{
+              position: "absolute", right: 0, top: 0, bottom: 0,
+              width: 4, cursor: "col-resize",
+              background: "transparent", transition: "background 0.15s", zIndex: 10,
+            }}
             onMouseEnter={e => (e.currentTarget.style.background = "#5B5BD6")}
             onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
           />
         </div>
 
-          {/* ── 우측: 편집 영역 ── */}
-          <div style={{ flex: 1, minWidth: 0, overflowY: "auto", height: "calc(100vh - 92px - 52px)", padding: "16px 20px" }}>
-        <div style={{ ...card, padding: "24px", marginBottom: 16 }}>
+        {/* ══════════════════════════════
+            우측 편집 영역 + 하단 버튼바
+            flex column → 편집영역 scroll + 버튼바 sticky
+        ══════════════════════════════ */}
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
 
-          {/* 상단 3열: 콘텐츠 유형 / 러닝타임 / 섹션 수 */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 20 }}>
-            <div>
-              <label style={labelBase}>콘텐츠 유형</label>
-              <select value={contentType} onChange={(e) => setContentType(e.target.value)} style={inputBase}
-                onFocus={e => (e.target.style.borderColor = "#5B5BD6")}
-                onBlur={e => (e.target.style.borderColor = "#E5E5E5")}>
-                {CONTENT_TYPES.map((ct) => <option key={ct} value={ct}>{ct}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={labelBase}>러닝타임</label>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <select
-                  value={isCustomRuntime ? "custom" : totalMinutes}
-                  onChange={(e) => {
-                    if (e.target.value === "custom") {
-                      setIsCustomRuntime(true); setCustomMinutes(Math.floor(totalMinutes)); setCustomSeconds(Math.round((totalMinutes % 1) * 60))
-                    } else {
-                      setIsCustomRuntime(false); setCustomMinutes(0); setCustomSeconds(0); handleRuntimeChange(parseInt(e.target.value))
-                    }
-                  }}
-                  style={{ ...inputBase, width: isCustomRuntime ? "auto" : "100%", flex: isCustomRuntime ? "none" : 1 }}
-                  onFocus={e => (e.target.style.borderColor = "#5B5BD6")}
-                  onBlur={e => (e.target.style.borderColor = "#E5E5E5")}>
-                  {RUNTIME_OPTIONS.map((m) => <option key={m} value={m}>{m}분</option>)}
-                  <option value="custom">직접 입력</option>
-                </select>
-                {isCustomRuntime && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      <input type="number" min={0} max={300} value={customMinutes} placeholder="0"
-                        onChange={(e) => { const mins = Math.max(0, Math.min(300, parseInt(e.target.value) || 0)); setCustomMinutes(mins); const t = mins + customSeconds / 60; if (t > 0) handleRuntimeChange(t) }}
-                        style={{ ...inputBase, width: 52, textAlign: "center", padding: "10px 6px" }} />
-                      <span style={{ fontSize: 12, color: "#6B6B6E" }}>분</span>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      <input type="number" min={0} max={50} step={10} value={customSeconds} placeholder="0"
-                        onChange={(e) => { let secs = Math.round((parseInt(e.target.value) || 0) / 10) * 10; if (secs < 0) secs = 0; if (secs >= 60) secs = 50; setCustomSeconds(secs); const t = customMinutes + secs / 60; if (t > 0) handleRuntimeChange(t) }}
-                        style={{ ...inputBase, width: 52, textAlign: "center", padding: "10px 6px" }} />
-                      <span style={{ fontSize: 12, color: "#6B6B6E" }}>초</span>
+          {/* ⑨ 편집영역 단독 스크롤 (브라우저 스크롤 X) */}
+          <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px 16px 20px" }}>
+
+            {/* ⑦ 콘텐츠 최대 1030px 센터 정렬 */}
+            <div style={{ maxWidth: 1030, margin: "0 auto" }}>
+
+              {/* ⑥ 프로젝트 불러오기/저장 – 편집영역 최상단 우측 */}
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginBottom: 16 }}>
+                <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isLoadingFile}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 6,
+                    border: "1px solid #5B5BD6", background: "transparent", color: "#5B5BD6",
+                    borderRadius: 8, padding: "7px 14px", fontSize: 13, fontWeight: 600,
+                    cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em",
+                    opacity: isLoadingFile ? 0.5 : 1,
+                  }}>
+                  <Upload style={{ width: 14, height: 14 }} />
+                  {isLoadingFile ? "불러오는 중..." : "프로젝트 불러오기"}
+                </button>
+                <input ref={fileInputRef} type="file" accept=".md" style={{ display: "none" }}
+                  onChange={(e) => { const file = e.target.files?.[0]; if (file) importFromMd(file); e.target.value = "" }} />
+                <button type="button" onClick={exportToMd}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 6,
+                    background: "#F5F5F5", color: "#3A3A3C",
+                    border: "1px solid #E5E5E5", borderRadius: 8,
+                    padding: "7px 14px", fontSize: 13, fontWeight: 600,
+                    cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em",
+                  }}>
+                  <Save style={{ width: 14, height: 14 }} />프로젝트 저장
+                </button>
+              </div>
+
+              {/* 설정 카드 */}
+              <div style={{ ...card, padding: "24px", marginBottom: 16 }}>
+                {/* 상단 3열: 콘텐츠 유형 / 러닝타임 / 섹션 수 */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 20 }}>
+                  <div>
+                    <label style={labelBase}>콘텐츠 유형</label>
+                    <select value={contentType} onChange={(e) => setContentType(e.target.value)} style={inputBase}
+                      onFocus={e => (e.target.style.borderColor = "#5B5BD6")}
+                      onBlur={e => (e.target.style.borderColor = "#E5E5E5")}>
+                      {CONTENT_TYPES.map((ct) => <option key={ct} value={ct}>{ct}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={labelBase}>러닝타임</label>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <select
+                        value={isCustomRuntime ? "custom" : totalMinutes}
+                        onChange={(e) => {
+                          if (e.target.value === "custom") {
+                            setIsCustomRuntime(true); setCustomMinutes(Math.floor(totalMinutes)); setCustomSeconds(Math.round((totalMinutes % 1) * 60))
+                          } else {
+                            setIsCustomRuntime(false); setCustomMinutes(0); setCustomSeconds(0); handleRuntimeChange(parseInt(e.target.value))
+                          }
+                        }}
+                        style={{ ...inputBase, width: isCustomRuntime ? "auto" : "100%", flex: isCustomRuntime ? "none" : 1 }}
+                        onFocus={e => (e.target.style.borderColor = "#5B5BD6")}
+                        onBlur={e => (e.target.style.borderColor = "#E5E5E5")}>
+                        {RUNTIME_OPTIONS.map((m) => <option key={m} value={m}>{m}분</option>)}
+                        <option value="custom">직접 입력</option>
+                      </select>
+                      {isCustomRuntime && (
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                            <input type="number" min={0} max={300} value={customMinutes} placeholder="0"
+                              onChange={(e) => { const mins = Math.max(0, Math.min(300, parseInt(e.target.value) || 0)); setCustomMinutes(mins); const t = mins + customSeconds / 60; if (t > 0) handleRuntimeChange(t) }}
+                              style={{ ...inputBase, width: 52, textAlign: "center", padding: "10px 6px" }} />
+                            <span style={{ fontSize: 12, color: "#6B6B6E" }}>분</span>
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                            <input type="number" min={0} max={50} step={10} value={customSeconds} placeholder="0"
+                              onChange={(e) => { let secs = Math.round((parseInt(e.target.value) || 0) / 10) * 10; if (secs < 0) secs = 0; if (secs >= 60) secs = 50; setCustomSeconds(secs); const t = customMinutes + secs / 60; if (t > 0) handleRuntimeChange(t) }}
+                              style={{ ...inputBase, width: 52, textAlign: "center", padding: "10px 6px" }} />
+                            <span style={{ fontSize: 12, color: "#6B6B6E" }}>초</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
-                )}
+                  <div>
+                    <label style={labelBase}>섹션 수</label>
+                    <select value={sectionCount} onChange={(e) => handleSectionCountChange(parseInt(e.target.value))} style={inputBase}
+                      onFocus={e => (e.target.style.borderColor = "#5B5BD6")}
+                      onBlur={e => (e.target.style.borderColor = "#E5E5E5")}>
+                      {[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].map((n) => <option key={n} value={n}>{n}개</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ height: 1, background: "#F5F5F5", marginBottom: 20 }} />
+
+                {/* 2열: 말투 스타일 / 낭독 속도 */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+                  <div>
+                    <label style={labelBase}>말투 스타일</label>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                      {TONE_STYLES.map((tone) => (
+                        <button key={tone.value} type="button" onClick={() => setToneStyle(tone.value)}
+                          style={{
+                            borderRadius: 7,
+                            border: toneStyle === tone.value ? "1.5px solid #5B5BD6" : "1px solid #E5E5E5",
+                            background: toneStyle === tone.value ? "#EFEFFD" : "#FAFAFA",
+                            color: toneStyle === tone.value ? "#5B5BD6" : "#3A3A3C",
+                            padding: "7px 13px", fontSize: 13,
+                            fontWeight: toneStyle === tone.value ? 600 : 400,
+                            cursor: "pointer", fontFamily: "inherit",
+                            letterSpacing: "-0.01em", transition: "all 0.12s",
+                          }}>
+                          {tone.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label style={labelBase}>낭독 속도</label>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      {READING_SPEEDS.map((speed) => (
+                        <button key={speed.value} type="button" onClick={() => setReadingSpeed(speed.value)}
+                          style={{
+                            flex: 1, borderRadius: 7,
+                            border: readingSpeed === speed.value ? "1.5px solid #5B5BD6" : "1px solid #E5E5E5",
+                            background: readingSpeed === speed.value ? "#EFEFFD" : "#FAFAFA",
+                            color: readingSpeed === speed.value ? "#5B5BD6" : "#3A3A3C",
+                            padding: "8px 6px", fontSize: 12,
+                            fontWeight: readingSpeed === speed.value ? 600 : 400,
+                            cursor: "pointer", fontFamily: "inherit",
+                            display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                            transition: "all 0.12s",
+                          }}>
+                          <span style={{ fontSize: 12, whiteSpace: "nowrap" }}>{speed.label}</span>
+                          <span style={{ fontSize: 10, color: readingSpeed === speed.value ? "#8B8BDF" : "#AEAEB2" }}>1분 = {speed.value}자</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: 16, display: "flex", justifyContent: "flex-end" }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: "#5B5BD6", background: "#EFEFFD", borderRadius: 6, padding: "4px 12px", letterSpacing: "-0.01em" }}>
+                    목표 글자수: {totalTargetChars.toLocaleString()}자
+                  </span>
+                </div>
               </div>
-            </div>
-            <div>
-              <label style={labelBase}>섹션 수</label>
-              <select value={sectionCount} onChange={(e) => handleSectionCountChange(parseInt(e.target.value))} style={inputBase}
-                onFocus={e => (e.target.style.borderColor = "#5B5BD6")}
-                onBlur={e => (e.target.style.borderColor = "#E5E5E5")}>
-                {[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16].map((n) => <option key={n} value={n}>{n}개</option>)}
-              </select>
-            </div>
-          </div>
 
-          {/* 구분선 */}
-          <div style={{ height: 1, background: "#F5F5F5", marginBottom: 20 }} />
+              {/* 타임라인 카드 */}
+              <div style={{ ...card, padding: "20px 24px", marginBottom: 16 }}>
+                <Timeline
+                  sections={sections.map((s) => ({ id: s.id, name: s.name, targetDuration: s.targetDuration, color: s.color }))}
+                  totalSeconds={totalSeconds}
+                  onDurationChange={handleDurationChange}
+                  onDirectDurationEdit={handleDirectDurationEdit}
+                  onResetDistribution={handleResetDistribution}
+                />
+              </div>
 
-          {/* 하단 2열: 말투 스타일 / 낭독 속도 */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-            <div>
-              <label style={labelBase}>말투 스타일</label>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                {TONE_STYLES.map((tone) => (
-                  <button key={tone.value} type="button" onClick={() => setToneStyle(tone.value)}
-                    style={{
-                      borderRadius: 7,
-                      border: toneStyle === tone.value ? "1.5px solid #5B5BD6" : "1px solid #E5E5E5",
-                      background: toneStyle === tone.value ? "#EFEFFD" : "#FAFAFA",
-                      color: toneStyle === tone.value ? "#5B5BD6" : "#3A3A3C",
-                      padding: "7px 13px",
-                      fontSize: 13,
-                      fontWeight: toneStyle === tone.value ? 600 : 400,
-                      cursor: "pointer",
-                      fontFamily: "inherit",
-                      letterSpacing: "-0.01em",
-                      transition: "all 0.12s",
-                    }}>
-                    {tone.label}
-                  </button>
+              {/* 섹션 카드 목록 */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {sections.map((section, index) => (
+                  <div key={section.id} ref={el => { sectionRefs.current[index] = el }}>
+                    <SectionCard
+                      index={index}
+                      name={section.name}
+                      targetDuration={section.targetDuration}
+                      script={section.script}
+                      color={section.color}
+                      isCompleted={section.isCompleted}
+                      readingSpeed={readingSpeed}
+                      contentType={contentType}
+                      toneStyle={toneStyle}
+                      topic={section.topic}
+                      narrationHistory={section.narrationHistory}
+                      onNameChange={(name) => handleNameChange(index, name)}
+                      onScriptChange={(script) => handleScriptChange(index, script)}
+                      onCompletedChange={(completed) => handleCompletedChange(index, completed)}
+                      onReset={() => handleReset(index)}
+                      onTopicChange={(topic) => handleTopicChange(index, topic)}
+                      onHistoryChange={(history) => handleHistoryChange(index, history)}
+                    />
+                  </div>
                 ))}
               </div>
-            </div>
-            <div>
-              <label style={labelBase}>낭독 속도</label>
-              <div style={{ display: "flex", gap: 6 }}>
-                {READING_SPEEDS.map((speed) => (
-                  <button key={speed.value} type="button" onClick={() => setReadingSpeed(speed.value)}
-                    style={{
-                      flex: 1,
-                      borderRadius: 7,
-                      border: readingSpeed === speed.value ? "1.5px solid #5B5BD6" : "1px solid #E5E5E5",
-                      background: readingSpeed === speed.value ? "#EFEFFD" : "#FAFAFA",
-                      color: readingSpeed === speed.value ? "#5B5BD6" : "#3A3A3C",
-                      padding: "8px 6px",
-                      fontSize: 12,
-                      fontWeight: readingSpeed === speed.value ? 600 : 400,
-                      cursor: "pointer",
-                      fontFamily: "inherit",
-                      display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
-                      transition: "all 0.12s",
-                    }}>
-                    <span style={{ fontSize: 12, whiteSpace: "nowrap" }}>{speed.label}</span>
-                    <span style={{ fontSize: 10, color: readingSpeed === speed.value ? "#8B8BDF" : "#AEAEB2" }}>1분 = {speed.value}자</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
 
-          {/* 목표 글자수 */}
-          <div style={{ marginTop: 16, display: "flex", justifyContent: "flex-end" }}>
-            <span style={{
-              fontSize: 13, fontWeight: 600, color: "#5B5BD6",
-              background: "#EFEFFD", borderRadius: 6,
-              padding: "4px 12px", letterSpacing: "-0.01em",
-            }}>
-              목표 글자수: {totalTargetChars.toLocaleString()}자
-            </span>
-          </div>
-        </div>
+              <div style={{ height: 24 }} />
+            </div>{/* maxWidth 1030 끝 */}
+          </div>{/* 편집영역 스크롤 끝 */}
 
-
-        {/* 프로젝트 불러오기/저장 버튼 - 우측 상단 */}
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginBottom: 16 }}>
-          <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isLoadingFile}
-            style={{
-              display: "flex", alignItems: "center", gap: 6,
-              border: "1px solid #5B5BD6", background: "transparent",
-              color: "#5B5BD6", borderRadius: 8,
-              padding: "8px 16px", fontSize: 13, fontWeight: 600,
-              cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em",
-              opacity: isLoadingFile ? 0.5 : 1,
-            }}>
-            <Upload style={{ width: 14, height: 14 }} />
-            {isLoadingFile ? "불러오는 중..." : "프로젝트 불러오기"}
-          </button>
-          <input ref={fileInputRef} type="file" accept=".md" style={{ display: "none" }}
-            onChange={(e) => { const file = e.target.files?.[0]; if (file) importFromMd(file); e.target.value = "" }} />
-          <button type="button" onClick={exportToMd}
-            style={{
-              display: "flex", alignItems: "center", gap: 6,
-              background: "#F5F5F5", color: "#3A3A3C",
-              border: "1px solid #E5E5E5", borderRadius: 8,
-              padding: "8px 16px", fontSize: 13, fontWeight: 600,
-              cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em",
-            }}>
-            <Save style={{ width: 14, height: 14 }} />프로젝트 저장
-          </button>
-        </div>
-
-        <div style={{ ...card, padding: "20px 24px", marginBottom: 16 }}>
-          <Timeline
-            sections={sections.map((s) => ({ id: s.id, name: s.name, targetDuration: s.targetDuration, color: s.color }))}
-            totalSeconds={totalSeconds}
-            onDurationChange={handleDurationChange}
-            onDirectDurationEdit={handleDirectDurationEdit}
-            onResetDistribution={handleResetDistribution}
-          />
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {sections.map((section, index) => (
-            <div key={section.id} ref={el => { sectionRefs.current[index] = el }}>
-            <SectionCard
-              index={index}
-              name={section.name}
-              targetDuration={section.targetDuration}
-              script={section.script}
-              color={section.color}
-              isCompleted={section.isCompleted}
-              readingSpeed={readingSpeed}
-              contentType={contentType}
-              toneStyle={toneStyle}
-              topic={section.topic}
-              narrationHistory={section.narrationHistory}
-              onNameChange={(name) => handleNameChange(index, name)}
-              onScriptChange={(script) => handleScriptChange(index, script)}
-              onCompletedChange={(completed) => handleCompletedChange(index, completed)}
-              onReset={() => handleReset(index)}
-              onTopicChange={(topic) => handleTopicChange(index, topic)}
-              onHistoryChange={(history) => handleHistoryChange(index, history)}
-            />
-            </div>
-          ))}
-        </div>
-
-        {/* ── 우측 dot 섹션 네비게이션 ── */}
-        <div style={{
-          position: "fixed", right: 16, top: "50%", transform: "translateY(-50%)",
-          display: "flex", flexDirection: "column", gap: 8, zIndex: 100,
-        }}>
-          {sections.map((_, index) => (
-            <button
-              key={index}
-              type="button"
-              title={`섹션 ${index + 1}로 이동`}
-              onClick={() => {
-                setActiveSectionDot(index)
-                sectionRefs.current[index]?.scrollIntoView({ behavior: "smooth", block: "start" })
-              }}
+          {/* ⑩ 하단 버튼바 – 우측 편집 영역 안에만 위치, AI 패널 침범 안 함 */}
+          <div style={{
+            background: "#fff", borderTop: "1px solid #E5E5E5",
+            padding: "9px 20px",
+            display: "flex", alignItems: "center", gap: 10,
+            flexShrink: 0, zIndex: 30,
+          }}>
+            <p style={{ fontSize: 11, color: "#AEAEB2", letterSpacing: "-0.01em", flex: 1 }}>
+              TXT 파일이 자동 저장됩니다 · StoryKit에서 파일을 업로드하세요
+            </p>
+            <button type="button" onClick={downloadText}
               style={{
-                width: activeSectionDot === index ? 10 : 8,
-                height: activeSectionDot === index ? 10 : 8,
-                borderRadius: "50%",
-                background: activeSectionDot === index ? "#5B5BD6" : "#D1D1D6",
-                border: "none",
-                cursor: "pointer",
-                padding: 0,
-                transition: "all 0.2s",
-              }}
-            />
-          ))}
-        </div>
+                display: "flex", alignItems: "center", gap: 6,
+                background: "#F5F5F5", color: "#3A3A3C",
+                border: "1px solid #E5E5E5", borderRadius: 8,
+                padding: "8px 18px", fontSize: 13, fontWeight: 600,
+                cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em",
+              }}>
+              <FileText style={{ width: 14, height: 14 }} />텍스트 다운로드
+            </button>
+            <button type="button" onClick={downloadPDF}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                background: "#5B5BD6", color: "#fff",
+                border: "none", borderRadius: 8,
+                padding: "8px 20px", fontSize: 13, fontWeight: 700,
+                cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em",
+              }}>
+              <Download style={{ width: 14, height: 14 }} />PDF 인쇄/저장
+            </button>
+          </div>
 
-        {/* 섹션 아래 여백 */}
-        <div style={{ height: 40 }} />
+        </div>{/* 우측 flex column 끝 */}
 
-          </div>{/* 우측 편집영역 끝 */}
-        </div>{/* 메인 바디 flex 끝 */}
+      </div>{/* BODY flex row 끝 */}
 
-      {/* ── 하단 Sticky 바: 텍스트 다운로드 + PDF 인쇄/저장 ── */}
+      {/* ⑧ 우측 dot 섹션 네비게이션 – 섹션 수 연동, 클릭 시 해당 섹션으로 스크롤 */}
       <div style={{
-        position: "sticky", bottom: 0, zIndex: 50,
-        background: "#fff", borderTop: "1px solid #E5E5E5",
-        padding: "10px 24px",
-        display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 10,
-        boxShadow: "0 -2px 8px rgba(0,0,0,0.06)",
-        flexShrink: 0,
+        position: "fixed", right: 14, top: "50%", transform: "translateY(-50%)",
+        display: "flex", flexDirection: "column", gap: 9, zIndex: 200,
       }}>
-        <p style={{ fontSize: 11, color: "#AEAEB2", letterSpacing: "-0.01em", marginRight: "auto" }}>
-          TXT 파일이 자동 저장됩니다 · StoryKit에서 파일을 업로드하세요
-        </p>
-        <button type="button" onClick={downloadText}
-          style={{
-            display: "flex", alignItems: "center", gap: 6,
-            background: "#F5F5F5", color: "#3A3A3C",
-            border: "1px solid #E5E5E5", borderRadius: 8,
-            padding: "9px 18px", fontSize: 13, fontWeight: 600,
-            cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em",
-          }}>
-          <FileText style={{ width: 14, height: 14 }} />텍스트 다운로드
-        </button>
-        <button type="button" onClick={downloadPDF}
-          style={{
-            display: "flex", alignItems: "center", gap: 6,
-            background: "#5B5BD6", color: "#fff",
-            border: "none", borderRadius: 8,
-            padding: "9px 20px", fontSize: 13, fontWeight: 600,
-            cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em",
-          }}>
-          <Download style={{ width: 14, height: 14 }} />PDF 인쇄/저장
-        </button>
+        {sections.map((_, index) => (
+          <button
+            key={index}
+            type="button"
+            title={`섹션 ${index + 1}로 이동`}
+            onClick={() => {
+              setActiveSectionDot(index)
+              sectionRefs.current[index]?.scrollIntoView({ behavior: "smooth", block: "start" })
+            }}
+            style={{
+              width: activeSectionDot === index ? 10 : 8,
+              height: activeSectionDot === index ? 10 : 8,
+              borderRadius: "50%",
+              background: activeSectionDot === index ? "#5B5BD6" : "#D1D1D6",
+              border: "none", cursor: "pointer", padding: 0,
+              transition: "all 0.2s",
+              flexShrink: 0,
+            }}
+          />
+        ))}
       </div>
 
       <div style={{ position: "fixed", left: -9999, top: 0 }}>
