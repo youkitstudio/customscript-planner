@@ -845,26 +845,8 @@ function ContentPlannerMain() {
 
           {/* ── 스토리보드 자동 생성 버튼 ── */}
           <div style={{ width: "100%", maxWidth: 520, marginTop: 8 }}>
-            <button type="button" onClick={() => {
-              // 1. TXT 자동 다운로드
-              const toneLabel = TONE_STYLES.find(t => t.value === toneStyle)?.label || toneStyle
-              const speedInfo = READING_SPEEDS.find(s => s.value === readingSpeed)
-              const speedLabel = speedInfo ? `${speedInfo.label} (1분 = ${speedInfo.value}자)` : `${readingSpeed}자/분`
-              const textContent = `${projectName || "제목없음"}\n${"=".repeat(50)}\n\n작성자: ${author || "-"}\n콘텐츠 유형: ${contentType}\n전체 러닝타임: ${totalMinutes}분\n섹션 수: ${sections.length}개\n말투 스타일: ${toneLabel}\n낭독 속도: ${speedLabel}\n전체 목표 글자수: ${totalTargetChars.toLocaleString()}자\n\n${"=".repeat(50)}\n\n${sections.map((section, idx) => `\n[#${idx + 1}] ${section.name}\n${"-".repeat(40)}\n목표 시간: ${formatTime(section.targetDuration)}\n작성 시간: ${formatTime(calculateDuration(section.script))}\n작성완료: ${section.isCompleted ? "예" : "아니오"}\n\n${section.script || "(작성된 내용 없음)"}\n`).join("\n")}\n\n${"=".repeat(50)}\n콘텐츠 원고 작성 도구 - youkit`
-
-              const blob = new Blob([textContent], { type: "text/plain;charset=utf-8" })
-              const url = URL.createObjectURL(blob)
-              const a = document.createElement("a")
-              a.href = url
-              a.download = `${projectName || "원고"}_storykit.txt`
-              a.click()
-              URL.revokeObjectURL(url)
-
-              // 2. 1초 후 StoryKit 새 탭으로 열기
-              setTimeout(() => {
-                window.open("https://storykit-eta.vercel.app", "_blank")
-              }, 800)
-            }}
+            <button
+              type="button"
               style={{
                 width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                 background: "linear-gradient(135deg, #6C5CE7 0%, #a855f7 100%)",
@@ -872,7 +854,25 @@ function ContentPlannerMain() {
                 padding: "15px 24px", fontSize: 15, fontWeight: 700,
                 cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em",
                 boxShadow: "0 4px 14px rgba(108,92,231,0.35)",
-              }}>
+              }}
+              onClick={() => {
+                const toneLabel = TONE_STYLES.find(t => t.value === toneStyle)?.label || toneStyle
+                const speedInfo = READING_SPEEDS.find(s => s.value === readingSpeed)
+                const speedLabel = speedInfo ? speedInfo.label + " (1분 = " + speedInfo.value + "자)" : readingSpeed + "자/분"
+                const lines = sections.map((section, idx) =>
+                  "\n[#" + (idx+1) + "] " + section.name + "\n" + "-".repeat(40) + "\n목표 시간: " + formatTime(section.targetDuration) + "\n작성 시간: " + formatTime(calculateDuration(section.script)) + "\n작성완료: " + (section.isCompleted ? "예" : "아니오") + "\n\n" + (section.script || "(작성된 내용 없음)") + "\n"
+                ).join("\n")
+                const textContent = (projectName || "제목없음") + "\n" + "=".repeat(50) + "\n\n작성자: " + (author || "-") + "\n콘텐츠 유형: " + contentType + "\n전체 러닝타임: " + totalMinutes + "분\n섹션 수: " + sections.length + "개\n말투 스타일: " + toneLabel + "\n낭독 속도: " + speedLabel + "\n전체 목표 글자수: " + totalTargetChars.toLocaleString() + "자\n\n" + "=".repeat(50) + "\n\n" + lines + "\n\n" + "=".repeat(50) + "\n콘텐츠 원고 작성 도구 - youkit"
+                const blob = new Blob([textContent], { type: "text/plain;charset=utf-8" })
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement("a")
+                a.href = url
+                a.download = (projectName || "원고") + "_storykit.txt"
+                a.click()
+                URL.revokeObjectURL(url)
+                setTimeout(() => { window.open("https://storykit-eta.vercel.app", "_blank") }, 800)
+              }}
+            >
               ✦ 스토리보드 자동 생성 →
             </button>
             <p style={{ fontSize: 11, color: "#AEAEB2", textAlign: "center", marginTop: 6, letterSpacing: "-0.01em" }}>
@@ -884,9 +884,9 @@ function ContentPlannerMain() {
             다운로드 버튼 클릭 후 약 3초 정도 후에 다운로드가 진행됩니다.
           </p>
         </div>
-        </div>
-        </div>
-        </div>
+          </div>
+          </div>
+          </div>
         </div>
       </main>
 
