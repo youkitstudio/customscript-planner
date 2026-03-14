@@ -195,6 +195,27 @@ function ContentPlannerMain() {
   const isResizing = useRef(false)
   const [activeSectionDot, setActiveSectionDot] = useState(0)
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([])
+  const chatPanelInnerRef = useRef<HTMLDivElement>(null)
+
+  // ChatPanel 내부 라운드 박스 border/boxShadow 런타임 제거
+  useEffect(() => {
+    const el = chatPanelInnerRef.current
+    if (!el) return
+    const clean = () => {
+      el.querySelectorAll<HTMLElement>("*").forEach((node) => {
+        const cs = window.getComputedStyle(node)
+        const br = cs.borderRadius
+        if (br && br !== "0px" && cs.borderStyle !== "none" && cs.borderWidth !== "0px") {
+          node.style.border = "none"
+          node.style.boxShadow = "none"
+        }
+      })
+    }
+    const timer = setTimeout(clean, 150)
+    const obs = new MutationObserver(clean)
+    obs.observe(el, { childList: true, subtree: true, attributes: true, attributeFilter: ["style", "class"] })
+    return () => { clearTimeout(timer); obs.disconnect() }
+  }, [])
   const [isCustomRuntime, setIsCustomRuntime] = useState(false)
   const [customMinutes, setCustomMinutes] = useState(0)
   const [customSeconds, setCustomSeconds] = useState(0)
@@ -576,6 +597,22 @@ function ContentPlannerMain() {
       fontFamily: "Pretendard, Apple SD Gothic Neo, sans-serif",
       display: "flex", flexDirection: "column",
     }}>
+      {/* ── AI 패널 내부 라운드 박스 / 구분선 전역 제거 ── */}
+      <style>{`
+        /* ChatPanel 감싸는 .chat-panel-inner 하위 모든 라운드 박스 border 제거 */
+        .chat-panel-inner > *,
+        .chat-panel-inner > * > * {
+          border-radius: 0 !important;
+          border: none !important;
+          box-shadow: none !important;
+        }
+        /* ChatPanel 컴포넌트 내부 래퍼들의 border/outline 제거 */
+        .chat-panel-inner [class*="rounded"],
+        .chat-panel-inner [class*="border"] {
+          border-radius: 0 !important;
+          border: none !important;
+        }
+      `}</style>
 
       {/* ══════════════════════════════════════════
           HEADER (48px) – 로고 + AI패널 아이콘 동일 스타일 + 스토리보드 버튼
@@ -599,7 +636,7 @@ function ContentPlannerMain() {
           </span>
         </div>
 
-        {/* ① 스토리보드 버튼 – 이미지 비율: 헤더 높이 대비 중간 크기, 보라 배경 없이 outline */}
+        {/* 스토리보드 버튼 – 로고에서 100px 우측 여백 후 배치 */}
         <button
           type="button"
           onClick={() => window.open("https://storykit-eta.vercel.app", "_blank")}
@@ -610,6 +647,7 @@ function ContentPlannerMain() {
             padding: "6px 14px", fontSize: 13, fontWeight: 700,
             cursor: "pointer", fontFamily: "inherit", flexShrink: 0,
             letterSpacing: "-0.02em",
+            marginLeft: 100,
           }}
         >
           ▶ 스토리 보드 작성
@@ -657,26 +695,26 @@ function ContentPlannerMain() {
           </span>
         </div>
 
-        {/* ③ 프로젝트명: 1920 기준 약 340px */}
+        {/* 프로젝트명: 600px, border 라인 제거 */}
         <input
           type="text" value={projectName}
           onChange={(e) => setProjectName(e.target.value)}
           placeholder="프로젝트 명"
           style={{
-            width: 340, flexShrink: 1, minWidth: 120,
-            borderRadius: 7, border: "1px solid #E5E5E5",
+            width: 600, flexShrink: 1, minWidth: 120,
+            borderRadius: 7, border: "none",
             background: "#F7F7F8", padding: "5px 10px",
             fontSize: 13, outline: "none", color: "#1C1C1E", fontFamily: "inherit",
           }}
         />
 
-        {/* 작성자: 약 140px */}
+        {/* 작성자: 110px */}
         <input
           type="text" value={author}
           onChange={(e) => setAuthor(e.target.value)}
           placeholder="작성자"
           style={{
-            width: 140, flexShrink: 1, minWidth: 80,
+            width: 110, flexShrink: 1, minWidth: 80,
             borderRadius: 7, border: "1px solid #E5E5E5",
             background: "#F7F7F8", padding: "5px 10px",
             fontSize: 13, outline: "none", color: "#1C1C1E", fontFamily: "inherit",
@@ -724,31 +762,33 @@ function ContentPlannerMain() {
           overflow: "hidden",
           position: "relative",
         }}>
-          {/* ④ 패널 상단 타이틀 – 아이콘 없이 불릿 + 텍스트만 */}
+          {/* 패널 상단 타이틀 – 좌측 아이콘 스타일 변경(원형 그라디언트 → 채팅 아이콘), 텍스트 16px */}
           <div style={{
-            padding: "12px 16px 0 16px",
+            padding: "14px 16px 8px 16px",
             display: "flex", alignItems: "center", justifyContent: "space-between",
-            flexShrink: 0,
+            flexShrink: 0, borderBottom: "1px solid #F0F0F0",
           }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{
-                width: 8, height: 8, borderRadius: "50%",
-                background: "linear-gradient(135deg, #6C5CE7, #a855f7)",
-                display: "inline-block", flexShrink: 0,
-              }} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#1C1C1E", letterSpacing: "-0.02em" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              {/* 좌측 아이콘: 채팅 버블 스타일로 변경 */}
+              <div style={{
+                width: 22, height: 22, borderRadius: 6,
+                background: "linear-gradient(135deg, #6C5CE7 0%, #a855f7 100%)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 11, color: "#fff", fontWeight: 700, flexShrink: 0,
+              }}>✦</div>
+              <span style={{ fontSize: 16, fontWeight: 700, color: "#1C1C1E", letterSpacing: "-0.03em" }}>
                 AI 원고요청
               </span>
             </div>
-            {/* 패널 접기 버튼(선택) */}
+            {/* 패널 접기 버튼 */}
             <button type="button" onClick={() => setChatPanelWidth((w: number) => w > 60 ? 300 : 40)}
-              style={{ background: "none", border: "none", cursor: "pointer", color: "#AEAEB2", fontSize: 14, padding: 0 }}>
+              style={{ background: "none", border: "none", cursor: "pointer", color: "#AEAEB2", fontSize: 16, padding: 0, lineHeight: 1 }}>
               ‹
             </button>
           </div>
 
-          {/* ChatPanel – ⑤ 내부 라운드박스 제거: ChatPanel 컴포넌트에 borderRadius:0 override */}
-          <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+          {/* ChatPanel – 내부 라운드 박스/구분선 CSS로 완전 제거 */}
+          <div ref={chatPanelInnerRef} className="chat-panel-inner" style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
             <ChatPanel
               currentState={{
                 projectName, contentType, totalMinutes, sectionCount,
@@ -1004,9 +1044,9 @@ function ContentPlannerMain() {
 
       </div>{/* BODY flex row 끝 */}
 
-      {/* ⑧ 우측 dot 섹션 네비게이션 – 섹션 수 연동, 클릭 시 해당 섹션으로 스크롤 */}
+      {/* ⑧ 우측 dot 섹션 네비게이션 – 좌측 50px 안쪽으로 이동 (right: 64) */}
       <div style={{
-        position: "fixed", right: 14, top: "50%", transform: "translateY(-50%)",
+        position: "fixed", right: 64, top: "50%", transform: "translateY(-50%)",
         display: "flex", flexDirection: "column", gap: 9, zIndex: 200,
       }}>
         {sections.map((_, index) => (
