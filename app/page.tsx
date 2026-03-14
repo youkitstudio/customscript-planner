@@ -195,6 +195,30 @@ function ContentPlannerMain() {
   const isResizing = useRef(false)
   const [activeSectionDot, setActiveSectionDot] = useState(0)
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([])
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+
+  // 스크롤 시 현재 보이는 섹션으로 dot 자동 연동
+  useEffect(() => {
+    const container = scrollContainerRef.current
+    if (!container) return
+    const handleScroll = () => {
+      const containerTop = container.getBoundingClientRect().top
+      let closestIdx = 0
+      let closestDist = Infinity
+      sectionRefs.current.forEach((el, i) => {
+        if (!el) return
+        const rect = el.getBoundingClientRect()
+        const dist = Math.abs(rect.top - containerTop - 80)
+        if (dist < closestDist) {
+          closestDist = dist
+          closestIdx = i
+        }
+      })
+      setActiveSectionDot(closestIdx)
+    }
+    container.addEventListener("scroll", handleScroll, { passive: true })
+    return () => container.removeEventListener("scroll", handleScroll)
+  }, [sections.length])
   const [isCustomRuntime, setIsCustomRuntime] = useState(false)
   const [customMinutes, setCustomMinutes] = useState(0)
   const [customSeconds, setCustomSeconds] = useState(0)
@@ -786,8 +810,8 @@ function ContentPlannerMain() {
         ══════════════════════════════ */}
         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
 
-          {/* ⑨ 편집영역 단독 스크롤 (브라우저 스크롤 X) */}
-          <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px 16px 20px" }}>
+          {/* 편집영역 단독 스크롤 */}
+          <div ref={scrollContainerRef} style={{ flex: 1, overflowY: "auto", padding: "16px 20px 16px 20px" }}>
 
             {/* ⑦ 콘텐츠 최대 1030px 센터 정렬 */}
             <div style={{ maxWidth: 1030, margin: "0 auto" }}>
@@ -1022,7 +1046,13 @@ function ContentPlannerMain() {
             title={`섹션 ${index + 1}로 이동`}
             onClick={() => {
               setActiveSectionDot(index)
-              sectionRefs.current[index]?.scrollIntoView({ behavior: "smooth", block: "start" })
+              const el = sectionRefs.current[index]
+              const container = scrollContainerRef.current
+              if (el && container) {
+                const elTop = el.getBoundingClientRect().top
+                const containerTop = container.getBoundingClientRect().top
+                container.scrollBy({ top: elTop - containerTop - 16, behavior: "smooth" })
+              }
             }}
             style={{
               width: activeSectionDot === index ? 10 : 8,

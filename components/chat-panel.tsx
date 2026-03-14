@@ -246,14 +246,27 @@ export default function ChatPanel({ currentState, onAction, isGenerating, setIsG
 
       {/* 입력 영역 */}
       <div style={{
-        padding: "10px 14px 14px", flexShrink: 0,
+        padding: "10px 14px 20px", flexShrink: 0,
       }}>
         <div style={{
           display: "flex", alignItems: "flex-end", gap: 7,
-          background: "#F7F7F8", padding: "8px 8px 8px 12px",
-          transition: "border-color 0.15s",
+          background: "#fff",
+          borderRadius: 12,
+          border: "1.5px solid #D0CFF5",
+          padding: "8px 8px 8px 12px",
+          boxShadow: "0 2px 8px rgba(91,91,214,0.08)",
+          transition: "border-color 0.15s, box-shadow 0.15s",
         }}
-          onFocus={() => {}}
+          onFocusCapture={e => {
+            const el = e.currentTarget as HTMLElement
+            el.style.borderColor = "#5B5BD6"
+            el.style.boxShadow = "0 2px 12px rgba(91,91,214,0.18)"
+          }}
+          onBlurCapture={e => {
+            const el = e.currentTarget as HTMLElement
+            el.style.borderColor = "#D0CFF5"
+            el.style.boxShadow = "0 2px 8px rgba(91,91,214,0.08)"
+          }}
         >
           <textarea
             ref={textareaRef}
